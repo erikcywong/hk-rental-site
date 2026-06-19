@@ -1,0 +1,16 @@
+{
+  "name": "hk-rental-site",
+  "version": "1.0.0",
+  "description": "香港租房網 - Hong Kong Commercial Rental Platform",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "dev": "python -m http.server 8080"
+  },
+  "dependencies": {
+    "stripe": "^14.14.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

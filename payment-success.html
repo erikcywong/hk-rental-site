@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>支付成功 - 香港租房網</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #000;
+      color: #e7e9ea;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .success-box {
+      background: #16181c;
+      border: 1px solid #2f3336;
+      border-radius: 16px;
+      padding: 48px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .success-icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #e7e9ea;
+    }
+    p {
+      font-size: 16px;
+      color: #71767b;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-block;
+      background: #1d9bf0;
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 9999px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #1a8cd8;
+    }
+    .details {
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+      text-align: left;
+    }
+    .details h3 {
+      font-size: 14px;
+      color: #71767b;
+      margin-bottom: 12px;
+    }
+    .details p {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #e7e9ea;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-box">
+    <div class="success-icon">🎉</div>
+    <h1>支付成功！</h1>
+    <p>感谢您升级到高级会员！<br>您现在可以享受所有高级功能。</p>
+
+    <div class="details">
+      <h3>下一步：</h3>
+      <p>✅ 您的套餐已激活</p>
+      <p>✅ 可以立即发布更多盘源</p>
+      <p>✅ 查看用户管理页面了解更多功能</p>
+    </div>
+
+    <a href="/" class="btn" style="margin-top: 32px;">返回首页</a>
+  </div>
+
+  <script>
+    // Optionally verify the session with Stripe
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+
+    if (sessionId) {
+      // You can verify the session with your backend if needed
+      console.log('Stripe Session ID:', sessionId);
+    }
+  </script>
+</body>
+</html>
