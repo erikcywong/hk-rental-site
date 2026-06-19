@@ -52,3 +52,5 @@ build/
 
 # WorkBuddy
 .workbuddy/
+
+.vercel

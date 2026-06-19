@@ -105,6 +105,31 @@
     .pricing-features li{padding:8px 0;border-bottom:1px solid var(--x-border);font-size:14px;color:var(--x-gray)}
     .pricing-features li:last-child{border:none}
     .pricing-features li strong{color:var(--x-text)}
+    .pricing-badge{position:absolute;top:-12px;right:16px;background:var(--x-dark);color:var(--x-blue);padding:4px 12px;border-radius:9999px;font-size:12px;font-weight:700;border:1px solid var(--x-blue)}
+    .pricing-badge.popular{background:var(--x-blue);color:#fff}
+    .pricing-card{position:relative} /* Ensure badge positions correctly */
+
+    /* Payment Modal */
+    .payment-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center}
+    .payment-modal.show{display:flex}
+    .payment-box{background:var(--x-dark);border:1px solid var(--x-border);border-radius:24px;padding:40px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto}
+    .payment-box h2{font-size:24px;font-weight:800;margin-bottom:8px}
+    .payment-box .plan-summary{background:rgba(29,155,240,0.1);border:1px solid var(--x-blue);border-radius:12px;padding:16px;margin-bottom:24px}
+    .payment-box .plan-summary h3{font-size:18px;font-weight:700;color:var(--x-blue);margin-bottom:4px}
+    .payment-box .plan-summary .price{font-size:28px;font-weight:800;color:var(--x-blue)}
+    .payment-options{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+    .payment-option{display:flex;align-items:center;gap:16px;padding:16px;border:1px solid var(--x-border);border-radius:12px;cursor:pointer;transition:all .2s;background:transparent}
+    .payment-option:hover{border-color:var(--x-blue);background:rgba(29,155,240,0.05)}
+    .payment-option.selected{border-color:var(--x-blue);background:rgba(29,155,240,0.1)}
+    .payment-option .icon{font-size:32px;min-width:48px;text-align:center}
+    .payment-option .info{flex:1}
+    .payment-option .info h4{font-size:16px;font-weight:700;margin-bottom:4px}
+    .payment-option .info p{font-size:13px;color:var(--x-gray)}
+    .payment-option .check{width:24px;height:24px;border-radius:50%;border:2px solid var(--x-border);display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .payment-option.selected .check{background:var(--x-blue);border-color:var(--x-blue);color:#fff}
+    .payment-confirm{width:100%;padding:16px;font-size:18px;font-weight:700}
+    .payment-secure{text-align:center;margin-top:16px;font-size:13px;color:var(--x-gray)}
+    .payment-secure .lock{margin-right:4px}
     .agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
     .agent-benefit{background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:24px}
     .agent-benefit h3{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--x-blue)}
@@ -253,6 +278,7 @@
       .logo-text{font-size:20px}.logo svg{width:32px;height:32px}
     }
   </style>
+  <script src="payment.js"></script>
 </head>
 <body>
 
@@ -923,6 +949,12 @@ const i18n = {
     role_user:'普通用戶',role_agent:'地產代理',role_admin:'管理員',
     status_online:'在線',status_offline:'離線',
     btn_approve:'批准',btn_suspend:'停用',btn_view:'查看',
+    // Payment related
+    pay_title:'確認支付',pay_subtitle:'選擇支付方式完成購買',pay_select_method:'選擇支付方式',
+    pay_confirm:'確認支付',pay_secure:'安全加密支付，支持退款保證',pay_success:'支付成功！歡迎使用我們的服務 🎉',
+    pricing_trial:'免費體驗',pricing_best_value:'最抵值',pricing_enterprise:'企業方案',
+    pf_email_support:'電郵支援',pf_unlimited_listing:'無限盤源',pf_white_label:'白標方案',
+    pf_api_access:'API 接入',pf_custom_integration:'定制整合',pf_sla_guarantee:'SLA 保證',pf_contact_us:'聯繫我們',
   },
   en: {
     brand:'HK Rental Hub',
@@ -1052,6 +1084,12 @@ const i18n = {
     role_user:'User',role_agent:'Agent',role_admin:'Admin',
     status_online:'Online',status_offline:'Offline',
     btn_approve:'Approve',btn_suspend:'Suspend',btn_view:'View',
+    // Payment related
+    pay_title:'Confirm Payment',pay_subtitle:'Select payment method to complete purchase',pay_select_method:'Select Payment Method',
+    pay_confirm:'Confirm Payment',pay_secure:'Secure encrypted payment with refund guarantee',pay_success:'Payment successful! Welcome to our service 🎉',
+    pricing_trial:'Free Trial',pricing_best_value:'Best Value',pricing_enterprise:'Enterprise',
+    pf_email_support:'Email Support',pf_unlimited_listing:'Unlimited Listings',pf_white_label:'White Label',
+    pf_api_access:'API Access',pf_custom_integration:'Custom Integration',pf_sla_guarantee:'SLA Guarantee',pf_contact_us:'Contact Us',
   }
 };
 
@@ -1403,25 +1441,36 @@ function buildSubPageContent(subId){
     const el=document.getElementById('sub-pricing-content');
     if(el)el.innerHTML=`<div class="pricing-grid">
       <div class="pricing-card">
+        <div class="pricing-badge">${L.pricing_trial}</div>
         <h3>${L.pricing_free}</h3>
         <div class="pricing-price">${L.pricing_free_price}</div>
         <div class="pricing-period">${L.pricing_per_month}</div>
-        <ul class="pricing-features"><li><strong>${L.pf_1_listing}</strong></li><li>${L.pf_basic_search}</li><li>${L.pf_agent_profile}</li></ul>
-        <button class="btn">${L.pf_choose}</button>
+        <ul class="pricing-features"><li><strong>${L.pf_1_listing}</strong></li><li>${L.pf_basic_search}</li><li>${L.pf_agent_profile}</li><li>${L.pf_email_support}</li></ul>
+        <button class="btn btn-outline" onclick="showPaymentModal('free')">${L.pf_choose}</button>
       </div>
       <div class="pricing-card featured">
-        <h3>${L.pricing_basic} <small style="color:var(--x-blue);">${L.pricing_most_popular}</small></h3>
+        <div class="pricing-badge popular">${L.pricing_most_popular}</div>
+        <h3>${L.pricing_basic}</h3>
         <div class="pricing-price">${L.pricing_basic_price}</div>
         <div class="pricing-period">${L.pricing_per_month}</div>
         <ul class="pricing-features"><li><strong>${L.pf_5_listing}</strong></li><li>${L.pf_priority_listing}</li><li>${L.pf_featured}</li><li>${L.pf_analytics}</li><li>${L.pf_priority_support}</li></ul>
-        <button class="btn">${L.pf_choose}</button>
+        <button class="btn" onclick="showPaymentModal('basic')">${L.pf_choose}</button>
       </div>
       <div class="pricing-card">
+        <div class="pricing-badge">${L.pricing_best_value}</div>
         <h3>${L.pricing_pro}</h3>
         <div class="pricing-price">${L.pricing_pro_price}</div>
         <div class="pricing-period">${L.pricing_per_month}</div>
         <ul class="pricing-features"><li><strong>${L.pf_20_listing}</strong></li><li>${L.pf_priority_listing}</li><li>${L.pf_featured}</li><li>${L.pf_analytics}</li><li>${L.pf_priority_support}</li><li>${L.pf_dedicated_manager}</li><li>${L.pf_mtr_ad}</li></ul>
-        <button class="btn">${L.pf_choose}</button>
+        <button class="btn" onclick="showPaymentModal('pro')">${L.pf_choose}</button>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-badge">${L.pricing_enterprise}</div>
+        <h3>${L.pricing_enterprise}</h3>
+        <div class="pricing-price">${L.pricing_enterprise_price}</div>
+        <div class="pricing-period">${L.pricing_per_month}</div>
+        <ul class="pricing-features"><li><strong>${L.pf_unlimited_listing}</strong></li><li>${L.pf_white_label}</li><li>${L.pf_api_access}</li><li>${L.pf_custom_integration}</li><li>${L.pf_dedicated_manager}</li><li>${L.pf_sla_guarantee}</li></ul>
+        <button class="btn btn-outline" onclick="showPaymentModal('enterprise')">${L.pf_contact_us}</button>
       </div>
     </div>`;
   }
