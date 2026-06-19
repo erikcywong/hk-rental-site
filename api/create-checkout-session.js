@@ -16,7 +16,15 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { planType, locale } = req.body;
+    const { planType, locale, paymentMethod } = req.body;
+
+    // Map frontend payment method to Stripe payment_method_types
+    const methodMapping = {
+      stripe: ['card'],                          // 信用卡/Debit Card
+      alipay: ['card', 'alipay'],                // Alipay HK
+      wechat: ['card', 'wechat_pay'],            // WeChat Pay
+    };
+    const paymentMethodTypes = methodMapping[paymentMethod] || ['card', 'alipay', 'wechat_pay'];
 
     // Plan pricing mapping
     const plans = {
@@ -35,7 +43,7 @@ module.exports = async (req, res) => {
     if (plan.priceId) {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
-        payment_method_types: ['card', 'alipay', 'wechat_pay'],
+        payment_method_types: paymentMethodTypes,
         line_items: [
           {
             price: plan.priceId,
@@ -56,7 +64,7 @@ module.exports = async (req, res) => {
     // Fallback: Create one-time payment (for testing without Price ID)
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      payment_method_types: ['card', 'alipay', 'wechat_pay'],
+      payment_method_types: paymentMethodTypes,
       line_items: [
         {
           price_data: {
