@@ -1327,8 +1327,15 @@ function showPage(page){
 
 // ===== SUB-PAGE NAVIGATION =====
 function showSubPage(subId){
+  console.log('showSubPage called with:', subId);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+subId).classList.add('active');
+  const targetPage = document.getElementById('page-'+subId);
+  console.log('Target page element:', targetPage);
+  if(targetPage) {
+    targetPage.classList.add('active');
+  } else {
+    console.error('Page not found: page-'+subId);
+  }
   // Clear all nav active states
   document.querySelectorAll('.nav-item').forEach(a=>{a.classList.remove('active');a.style.color='var(--x-gray)'});
   // Highlight parent nav item based on sub-page category
@@ -1345,6 +1352,8 @@ function showSubPage(subId){
 }
 
 function buildSubPageContent(subId){
+  try {
+  console.log('buildSubPageContent called with:', subId);
   const L=i18n[currentLang];
   // Property-type sub-pages: filter and show matching properties
   const typeFilterMap={
@@ -1483,6 +1492,9 @@ function buildSubPageContent(subId){
           ${u.role==='AGENT'?`<button class="btn-sm" style="padding:4px 10px;border-radius:9999px;font-size:12px;cursor:pointer;background:var(--x-green);color:#fff;border:none;">${L.btn_approve}</button>`:''}
         </td></tr>`;
     }).join('')}</tbody></table>`;
+  }
+  } catch(e) {
+    console.error('Error in buildSubPageContent:', e);
   }
 }
 
