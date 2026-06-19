@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>香港租房網 | HK Rental Hub</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--x-black:#000;--x-dark:#16181c;--x-darker:#0a0a0a;--x-blue:#1d9bf0;--x-blue-hover:#1a8cd8;--x-gray:#71767b;--x-border:#2f3336;--x-green:#00ba7c;--x-red:#f4212e;--x-text:#e7e9ea}
+    body{background:var(--x-black);color:var(--x-text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.6}
+    a{color:inherit;text-decoration:none;cursor:pointer}
+    ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:#000}::-webkit-scrollbar-thumb{background:var(--x-blue);border-radius:4px}
+    .container{max-width:1200px;margin:0 auto;padding:0 16px}
+
+    /* Header */
+    .header{position:sticky;top:0;z-index:100;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--x-border)}
+    .header-inner{display:flex;align-items:center;height:64px}
+    .logo{display:flex;align-items:center;gap:10px;cursor:pointer;white-space:nowrap}
+    .logo svg{width:40px;height:40px}
+    .logo-text{font-size:26px;font-weight:800;color:var(--x-blue)}
+
+    /* Nav — evenly distributed */
+    .nav{display:flex;flex:1;justify-content:space-around;align-items:center;padding:0 16px}
+    .nav-item{position:relative;font-size:15px;font-weight:600;color:var(--x-gray);cursor:pointer;padding:20px 12px;transition:color .2s}
+    .nav-item:hover,.nav-item.active{color:var(--x-blue)}
+    /* Dropdown */
+    .nav-dropdown{position:absolute;top:64px;left:50%;transform:translateX(-50%);background:var(--x-black);border:1px solid var(--x-border);border-radius:12px;padding:8px 0;min-width:180px;display:none;z-index:110;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+    .nav-item:hover .nav-dropdown{display:block}
+    .nav-dropdown a{display:block;padding:10px 20px;font-size:14px;color:var(--x-gray);transition:background .15s,color .15s;white-space:nowrap}
+    .nav-dropdown a:hover{background:rgba(29,155,240,0.1);color:var(--x-blue)}
+    .btn{background:var(--x-blue);color:#fff;font-weight:700;border:none;border-radius:9999px;padding:8px 20px;cursor:pointer;transition:background .2s;font-size:14px}
+    .btn:hover{background:var(--x-blue-hover)}
+    .btn-outline{background:transparent;border:1px solid var(--x-border);color:var(--x-text)}
+    .btn-outline:hover{background:var(--x-dark)}
+    .btn-sm{padding:6px 14px;font-size:12px}
+    .btn-lg{padding:12px 32px;font-size:16px}
+    .header-right{display:flex;align-items:center;gap:12px}
+
+    /* Language Toggle */
+    .lang-toggle{display:flex;align-items:center;gap:6px;background:var(--x-dark);border:1px solid var(--x-border);border-radius:9999px;padding:6px 12px;cursor:pointer;transition:border-color .2s;font-size:13px;font-weight:600;color:var(--x-text)}
+    .lang-toggle:hover{border-color:var(--x-blue)}
+    .lang-toggle .lang-icon{font-size:16px}
+
+    .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--x-blue),var(--x-blue-hover));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;cursor:pointer}
+    .user-name{font-size:14px;font-weight:500}
+
+    /* Modal */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center}
+    .modal-overlay.active{display:flex}
+    .modal{background:var(--x-black);border:1px solid var(--x-border);border-radius:16px;padding:32px;width:100%;max-width:480px;position:relative}
+    .modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:transparent;color:var(--x-gray);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+    .modal-close:hover{background:var(--x-dark)}
+    .modal h2{font-size:24px;font-weight:800;margin-bottom:8px;text-align:center}
+    .modal p{color:var(--x-gray);text-align:center;margin-bottom:24px}
+    .modal-tabs{display:flex;border-bottom:1px solid var(--x-border);margin-bottom:24px}
+    .modal-tab{padding:12px 24px;font-size:14px;font-weight:700;color:var(--x-gray);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+    .modal-tab.active{color:var(--x-blue);border-bottom-color:var(--x-blue)}
+
+    /* Login Method Tabs */
+    .login-method-tabs{display:flex;gap:8px;margin-bottom:16px}
+    .login-method-tab{padding:8px 16px;border-radius:9999px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--x-border);color:var(--x-gray)}
+    .login-method-tab.active{background:var(--x-blue);color:#fff;border-color:var(--x-blue)}
+    .login-method-tab:not(.active):hover{border-color:var(--x-blue);color:var(--x-blue)}
+
+    /* SMS Code */
+    .sms-row{display:flex;gap:8px}
+    .sms-row .input{flex:1}
+    .sms-btn{padding:12px 16px;border-radius:4px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;background:var(--x-dark);border:1px solid var(--x-border);color:var(--x-blue);white-space:nowrap}
+    .sms-btn:hover{background:var(--x-dark);border-color:var(--x-blue)}
+    .sms-btn.disabled{color:var(--x-gray);border-color:var(--x-border);cursor:not-allowed}
+
+    .form-group{margin-bottom:16px}
+    .form-group label{font-size:14px;font-weight:500;color:var(--x-gray);margin-bottom:6px;display:block}
+    .input,.select,.textarea{background:#000;border:1px solid var(--x-border);color:var(--x-text);border-radius:4px;padding:12px;width:100%;font-size:14px;transition:border-color .2s}
+    .input:focus,.select:focus,.textarea:focus{border-color:var(--x-blue);outline:none}
+    .select optgroup{background:var(--x-dark);color:var(--x-blue);font-weight:700;font-style:normal;padding:8px 12px}
+    .select option{background:#000;color:var(--x-text);padding:6px 12px}
+    .textarea{min-height:100px;resize:vertical;font-family:inherit}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .checkbox-group{display:flex;flex-wrap:wrap;gap:8px}
+    .checkbox-item{display:flex;align-items:center;gap:6px;border:1px solid var(--x-border);border-radius:9999px;padding:6px 14px;font-size:13px;cursor:pointer;transition:all .2s}
+    .checkbox-item:hover{border-color:var(--x-blue)}
+    .checkbox-item.checked{background:var(--x-blue);border-color:var(--x-blue);color:#fff}
+    .checkbox-item input{display:none}
+
+    /* Pages */
+    .page{display:none}.page.active{display:block}
+
+    /* Sub-page content cards */
+    .sub-hero{background:var(--x-dark);border-bottom:1px solid var(--x-border);padding:48px 0;text-align:center}
+    .sub-hero h1{font-size:36px;font-weight:800;margin-bottom:8px}
+    .sub-hero h1 span{color:var(--x-blue)}
+    .sub-hero p{color:var(--x-gray);font-size:18px;margin-bottom:24px}
+    .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:32px}
+    .pricing-card{background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:32px;text-align:center;transition:border-color .2s}
+    .pricing-card:hover{border-color:var(--x-blue)}
+    .pricing-card.featured{border-color:var(--x-blue);position:relative}
+    .pricing-card.featured::before{content:'★';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--x-blue);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+    .pricing-card h3{font-size:20px;font-weight:700;margin-bottom:8px}
+    .pricing-price{font-size:32px;font-weight:800;color:var(--x-blue);margin-bottom:4px}
+    .pricing-period{color:var(--x-gray);font-size:14px;margin-bottom:16px}
+    .pricing-features{list-style:none;margin-bottom:24px}
+    .pricing-features li{padding:8px 0;border-bottom:1px solid var(--x-border);font-size:14px;color:var(--x-gray)}
+    .pricing-features li:last-child{border:none}
+    .pricing-features li strong{color:var(--x-text)}
+    .agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+    .agent-benefit{background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:24px}
+    .agent-benefit h3{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--x-blue)}
+    .agent-benefit p{color:var(--x-gray);font-size:14px;line-height:1.6}
+    .agent-benefit ul{list-style:none;margin-top:12px}
+    .agent-benefit ul li{padding:6px 0;font-size:14px;color:var(--x-gray)}
+    .agent-benefit ul li::before{content:'✓ ';color:var(--x-green);font-weight:700}
+    .user-table{width:100%;border-collapse:collapse}
+    .user-table th,.user-table td{padding:12px 16px;border-bottom:1px solid var(--x-border);font-size:14px}
+    .user-table th{color:var(--x-gray);font-weight:600;text-align:left}
+    .user-table td{color:var(--x-text)}
+    .user-table tr:hover{background:var(--x-dark)}
+    .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+    .status-dot.online{background:var(--x-green)}.status-dot.offline{background:var(--x-gray)}
+    .overview-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:24px}
+    .overview-card{background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:24px}
+    .overview-card h4{font-size:14px;color:var(--x-gray);margin-bottom:8px}
+    .overview-card .big-num{font-size:36px;font-weight:800;color:var(--x-blue)}
+    .overview-card .trend{font-size:12px;color:var(--x-green);margin-top:4px}
+    .listing-manage-card{background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:24px;margin-bottom:16px}
+    .listing-manage-card .lm-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .listing-manage-card .lm-header h3{font-size:16px;font-weight:700}
+    .listing-manage-card .lm-meta{display:flex;gap:16px;font-size:13px;color:var(--x-gray)}
+    .lm-actions{display:flex;gap:8px}
+    .lm-actions button{padding:6px 12px;border-radius:9999px;font-size:12px;cursor:pointer;border:1px solid var(--x-border);background:transparent;color:var(--x-gray);transition:all .2s}
+    .lm-actions button:hover{border-color:var(--x-blue);color:var(--x-blue)}
+    .lm-actions button.primary{background:var(--x-blue);color:#fff;border-color:var(--x-blue)}
+
+    /* Hero */
+    .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--x-border);padding:80px 0}
+    .hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(29,155,240,0.08),transparent)}
+    .hero-content{position:relative;max-width:700px}
+    .hero h1{font-size:56px;font-weight:800;line-height:1.1;margin-bottom:16px}
+    .hero h1 span{color:var(--x-blue)}
+    .hero p{font-size:20px;color:var(--x-gray);margin-bottom:32px}
+
+    /* Search */
+    .search-box{background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:24px}
+    .search-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px}
+    .filters-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px}
+
+    /* Stats */
+    .stats{border-bottom:1px solid var(--x-border);padding:48px 0}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;text-align:center}
+    .stat-value{font-size:40px;font-weight:800;color:var(--x-blue)}.stat-label{font-size:14px;color:var(--x-gray);margin-top:8px}
+
+    /* Section */
+    .section{padding:64px 0}
+    .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+    .section-title{font-size:28px;font-weight:800}
+    .section-link{color:var(--x-blue);font-size:14px}.section-link:hover{text-decoration:underline}
+
+    /* Property Grid */
+    .property-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+    .property-card{background:#000;border:1px solid var(--x-border);border-radius:12px;padding:16px;transition:background .2s,border-color .2s;cursor:pointer}
+    .property-card:hover{background:rgba(231,233,234,0.03);border-color:var(--x-blue)}
+    .property-img{width:100%;aspect-ratio:16/9;border-radius:8px;background:linear-gradient(135deg,var(--x-dark),var(--x-darker));display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:24px;color:var(--x-gray)}
+    .property-card h3{font-size:18px;font-weight:700}
+    .property-price{font-size:24px;font-weight:800;color:var(--x-blue);margin:8px 0}
+    .property-price small{font-size:14px;font-weight:400;color:var(--x-gray)}
+    .property-info{display:flex;gap:16px;font-size:14px;color:var(--x-gray)}
+    .property-location{font-size:14px;color:var(--x-gray);margin-top:4px}
+    .property-footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--x-border);padding-top:12px;margin-top:12px}
+    .badge{background:var(--x-blue);color:#fff;font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
+
+    /* Mini Map */
+    .mini-map{width:100%;aspect-ratio:16/9;border-radius:8px;margin-bottom:16px;z-index:1}
+
+    /* Detail */
+    .detail-grid{display:grid;grid-template-columns:2fr 1fr;gap:32px}
+    .detail-img{width:100%;aspect-ratio:16/9;border-radius:16px;background:linear-gradient(135deg,var(--x-dark),var(--x-darker));display:flex;align-items:center;justify-content:center;margin-bottom:24px;font-size:48px;color:var(--x-gray)}
+    .detail-map{width:100%;height:300px;border-radius:16px;margin:24px 0;z-index:1}
+    .detail-title{font-size:32px;font-weight:800}
+    .detail-price{font-size:40px;font-weight:800;color:var(--x-blue);margin:16px 0}
+    .detail-price small{font-size:18px;font-weight:400;color:var(--x-gray)}
+    .detail-info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;border:1px solid var(--x-border);border-radius:16px;padding:24px;margin:24px 0}
+    .detail-info-item .label{font-size:14px;color:var(--x-gray)}.detail-info-item .value{font-size:20px;font-weight:700}
+    .detail-section{margin:32px 0}.detail-section h2{font-size:20px;font-weight:700;margin-bottom:16px}.detail-section p{color:var(--x-gray);line-height:1.8}
+    .facilities-list{display:flex;flex-wrap:wrap;gap:8px}
+    .facility-tag{border:1px solid var(--x-border);border-radius:9999px;padding:8px 16px;font-size:14px}
+    .agent-card{border:1px solid var(--x-border);border-radius:16px;padding:24px;position:sticky;top:80px}
+    .agent-header{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+    .agent-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--x-blue),var(--x-blue-hover));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff}
+    .agent-name{font-weight:700;font-size:18px}.agent-company{font-size:14px;color:var(--x-gray)}
+    .agent-contact{margin:16px 0}.agent-contact a{display:flex;align-items:center;gap:12px;color:var(--x-blue);padding:4px 0}.agent-contact a:hover{text-decoration:underline}
+    .btn-full{width:100%;text-align:center;margin-bottom:8px;display:block}
+
+    /* Filters */
+    .filters-bar{position:sticky;top:64px;z-index:50;background:rgba(0,0,0,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--x-border);padding:16px 0}
+    .filters-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px}
+    .results-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+
+    /* Listing Form */
+    .listing-page-header{background:var(--x-dark);border-bottom:1px solid var(--x-border);padding:32px 0}
+    .form-section{border:1px solid var(--x-border);border-radius:16px;padding:24px;margin-bottom:24px}
+    .form-section h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--x-blue)}
+    .form-section-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .step-indicator{display:flex;gap:8px;margin-bottom:32px}
+    .step{padding:8px 20px;border-radius:9999px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+    .step.active{background:var(--x-blue);color:#fff}.step:not(.active){background:var(--x-dark);color:var(--x-gray);border:1px solid var(--x-border)}
+    .step:not(.active):hover{border-color:var(--x-blue)}
+    .upload-zone{border:2px dashed var(--x-border);border-radius:16px;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s}
+    .upload-zone:hover{border-color:var(--x-blue)}
+    .upload-zone .icon{font-size:48px;color:var(--x-gray);margin-bottom:8px}
+
+    /* Map Page */
+    .map-container{height:600px;border-radius:16px;z-index:1;margin-bottom:24px}
+    .map-sidebar{border:1px solid var(--x-border);border-radius:16px;padding:16px;max-height:600px;overflow-y:auto}
+
+    /* CTA */
+    .cta{border-top:1px solid var(--x-border);background:var(--x-dark);padding:64px 0;text-align:center}
+    .cta h2{font-size:32px;font-weight:800;margin-bottom:16px}.cta p{font-size:18px;color:var(--x-gray);margin-bottom:32px}
+
+    /* Footer */
+    .footer{border-top:1px solid var(--x-border);padding:32px 0;text-align:center;font-size:14px;color:var(--x-gray)}
+
+    /* Breadcrumb */
+    .breadcrumb{padding:16px 0;border-bottom:1px solid var(--x-border)}.breadcrumb a{color:var(--x-gray);font-size:14px}.breadcrumb a:hover{color:var(--x-blue)}.breadcrumb span{color:var(--x-gray);margin:0 8px}
+
+    /* Admin */
+    .admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+    .admin-stat-card{border:1px solid var(--x-border);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:space-between}
+    .admin-stat-card .stat-label{font-size:14px;color:var(--x-gray)}.admin-stat-card .stat-value{font-size:32px}.admin-stat-card .icon{font-size:36px}
+    .admin-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+    .admin-action-card{border:1px solid var(--x-border);border-radius:12px;padding:20px;cursor:pointer;transition:border-color .2s}.admin-action-card:hover{border-color:var(--x-blue)}
+    .admin-action-card h3{font-size:18px;font-weight:700;margin-bottom:8px}.admin-action-card p{font-size:14px;color:var(--x-gray)}
+    .admin-table{border:1px solid var(--x-border);border-radius:12px;padding:20px}
+    .admin-table table{width:100%;border-collapse:collapse}.admin-table th{text-align:left;font-size:14px;color:var(--x-gray);padding-bottom:12px;border-bottom:1px solid var(--x-border)}.admin-table td{padding:12px 0;border-bottom:1px solid var(--x-border);font-size:14px}.admin-table tr:last-child td{border-bottom:none}
+    .status-badge{padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700}
+    .status-active{background:rgba(0,186,124,0.2);color:var(--x-green)}.status-pending{background:rgba(255,193,7,0.2);color:#ffc107}.status-rented{background:rgba(113,118,123,0.2);color:var(--x-gray)}
+
+    /* Toast */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--x-blue);color:#fff;padding:12px 24px;border-radius:9999px;font-weight:700;font-size:14px;z-index:300;opacity:0;transition:opacity .3s}
+    .toast.show{opacity:1}
+
+    /* Responsive */
+    @media(max-width:768px){
+      .hero h1{font-size:36px}.search-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}
+      .property-grid{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr}.detail-info-grid{grid-template-columns:1fr 1fr}
+      .filters-grid{grid-template-columns:1fr 1fr}.admin-stats{grid-template-columns:1fr 1fr}.admin-actions{grid-template-columns:1fr}
+      .pricing-grid{grid-template-columns:1fr}.agent-grid{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr 1fr}
+      .nav{display:none}.form-row,.form-section-grid{grid-template-columns:1fr}
+      .modal{margin:16px;padding:24px}
+      .detail-map,.map-container{height:300px}
+      .lang-toggle{padding:4px 8px;font-size:12px}
+      .logo-text{font-size:20px}.logo svg{width:32px;height:32px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="container header-inner">
+    <a class="logo" onclick="showPage('home')">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Building icon -->
+        <rect x="8" y="12" width="24" height="24" rx="2" fill="#1d9bf0" opacity="0.15"/>
+        <rect x="8" y="12" width="24" height="24" rx="2" stroke="#1d9bf0" stroke-width="1.5"/>
+        <rect x="12" y="16" width="4" height="4" rx="0.5" fill="#1d9bf0"/>
+        <rect x="18" y="16" width="4" height="4" rx="0.5" fill="#1d9bf0"/>
+        <rect x="24" y="16" width="4" height="4" rx="0.5" fill="#1d9bf0"/>
+        <rect x="12" y="22" width="4" height="4" rx="0.5" fill="#1d9bf0"/>
+        <rect x="18" y="22" width="4" height="4" rx="0.5" fill="#1d9bf0"/>
+        <rect x="24" y="22" width="4" height="4" rx="0.5" fill="#1d9bf0"/>
+        <rect x="18" y="28" width="6" height="8" rx="1" fill="#1d9bf0" opacity="0.6"/>
+        <!-- Roof -->
+        <path d="M6 12 L20 4 L34 12" stroke="#1d9bf0" stroke-width="2" fill="#1d9bf0" fill-opacity="0.1"/>
+        <!-- Key / Rent symbol -->
+        <circle cx="34" cy="10" r="5" fill="#1d9bf0" opacity="0.2" stroke="#1d9bf0" stroke-width="1"/>
+        <path d="M34 7 L34 13 M32 9 L36 9" stroke="#1d9bf0" stroke-width="1.2"/>
+      </svg>
+      <span class="logo-text" data-i18n="brand">香港租房網</span>
+    </a>
+    <nav class="nav">
+      <!-- 首頁 -->
+      <div class="nav-item" onclick="showPage('home')" id="nav-home" data-i18n="nav_home">
+        <span>首頁</span>
+        <div class="nav-dropdown">
+          <a onclick="event.stopPropagation();showSubPage('sub-featured')" data-i18n="sub_home_featured">🌟 精選盤源</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-new')" data-i18n="sub_home_new">🆕 最新上架</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-popular')" data-i18n="sub_home_popular">🔥 熱門租盤</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-premium')" data-i18n="sub_home_premium">💎 高級物業</a>
+        </div>
+      </div>
+      <!-- 租盤 -->
+      <div class="nav-item" onclick="showPage('properties')" id="nav-properties" data-i18n="nav_properties">
+        <span>租盤</span>
+        <div class="nav-dropdown">
+          <a onclick="event.stopPropagation();showSubPage('sub-office')" data-i18n="sub_prop_office">🏢 辦公室</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-shop')" data-i18n="sub_prop_shop">🏪 零售店舖</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-warehouse')" data-i18n="sub_prop_warehouse">📦 倉庫</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-industrial')" data-i18n="sub_prop_industrial">🏭 工業大厦</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-restaurant')" data-i18n="sub_prop_restaurant">🍽️ 餐廳</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-cowork')" data-i18n="sub_prop_cowork">🤝 共享辦公</a>
+        </div>
+      </div>
+      <!-- 地圖 -->
+      <div class="nav-item" onclick="showPage('map')" id="nav-map" data-i18n="nav_map">
+        <span>地圖</span>
+        <div class="nav-dropdown">
+          <a onclick="event.stopPropagation();showPage('map')" data-i18n="sub_map_hk_island">📍 香港島</a>
+          <a onclick="event.stopPropagation();showPage('map')" data-i18n="sub_map_kln">📍 九龍</a>
+          <a onclick="event.stopPropagation();showPage('map')" data-i18n="sub_map_nt">📍 新界</a>
+          <a onclick="event.stopPropagation();showPage('map')" data-i18n="sub_map_near_mtr">🚇 港鐵沿線</a>
+        </div>
+      </div>
+      <!-- 放盤 -->
+      <div class="nav-item" onclick="showPage('listing')" id="nav-listing" data-i18n="nav_listing">
+        <span>放盤</span>
+        <div class="nav-dropdown">
+          <a onclick="event.stopPropagation();showPage('listing')" data-i18n="sub_list_new">📝 新盤發佈</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-listing-mgmt')" data-i18n="sub_list_manage">📋 盤源管理</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-pricing')" data-i18n="sub_list_package">💰 付費套餐</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-agent-signup')" data-i18n="sub_list_agent">👨‍💼 代理入駐</a>
+        </div>
+      </div>
+      <!-- 管理 -->
+      <div class="nav-item" onclick="showPage('admin')" id="nav-admin" data-i18n="nav_admin">
+        <span>管理</span>
+        <div class="nav-dropdown">
+          <a onclick="event.stopPropagation();showSubPage('sub-admin-overview')" data-i18n="sub_admin_overview">📊 系統概览</a>
+          <a onclick="event.stopPropagation();showSubPage('sub-admin-users')" data-i18n="sub_admin_users">👥 用戶管理</a>
+          <a onclick="event.stopPropagation();showPage('admin')" data-i18n="sub_admin_review">✅ 盤源審核</a>
+          <a onclick="event.stopPropagation();showPage('admin')" data-i18n="sub_admin_settings">⚙️ 系統設定</a>
+        </div>
+      </div>
+    </nav>
+    <div class="header-right" id="header-right">
+      <!-- Language Toggle -->
+      <div class="lang-toggle" onclick="toggleLanguage()" id="lang-toggle">
+        <span class="lang-icon">🌐</span>
+        <span id="lang-label">EN</span>
+      </div>
+      <!-- Default: Login button -->
+      <div id="header-logged-out">
+        <button class="btn" onclick="openAuthModal()" data-i18n="btn_login">登入</button>
+      </div>
+      <!-- After login -->
+      <div id="header-logged-in" style="display:none;align-items:center;gap:12px;">
+        <div class="user-avatar" id="user-avatar-btn" onclick="toggleUserMenu()">U</div>
+        <span class="user-name" id="user-display-name">用戶</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <h2 id="auth-title">登入 香港租房網</h2>
+    <p id="auth-subtitle" data-i18n="auth_subtitle">香港商業租賃平台</p>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchAuthTab('login')" id="tab-login" data-i18n="tab_login">登入</div>
+      <div class="modal-tab" onclick="switchAuthTab('register')" id="tab-register" data-i18n="tab_register">註冊</div>
+    </div>
+
+    <!-- Login Form -->
+    <div id="auth-login-form">
+      <!-- Login Method Tabs -->
+      <div class="login-method-tabs">
+        <div class="login-method-tab active" onclick="switchLoginMethod('email')" id="lm-email" data-i18n="lm_email">電郵登入</div>
+        <div class="login-method-tab" onclick="switchLoginMethod('mobile')" id="lm-mobile" data-i18n="lm_mobile">手機登入</div>
+      </div>
+
+      <!-- Email Login -->
+      <div id="login-email-form">
+        <div class="form-group">
+          <label data-i18n="label_email">電郵地址</label>
+          <input class="input" type="email" placeholder="your@email.com" id="login-email">
+        </div>
+        <div class="form-group">
+          <label data-i18n="label_password">密碼</label>
+          <input class="input" type="password" data-i18n-placeholder="ph_password" placeholder="輸入密碼" id="login-password">
+        </div>
+        <button class="btn btn-full btn-lg" onclick="doLogin()" data-i18n="btn_login">登入</button>
+      </div>
+
+      <!-- Mobile Login -->
+      <div id="login-mobile-form" style="display:none;">
+        <div class="form-group">
+          <label data-i18n="label_phone">手機號碼</label>
+          <input class="input" type="tel" placeholder="+852 XXXX XXXX" id="login-phone">
+        </div>
+        <div class="form-group">
+          <label data-i18n="label_sms_code">驗證碼</label>
+          <div class="sms-row">
+            <input class="input" type="text" data-i18n-placeholder="ph_sms_code" placeholder="輸入6位驗證碼" id="login-sms-code" maxlength="6">
+            <button class="sms-btn" onclick="sendSMSCode('login')" id="login-sms-btn" data-i18n="btn_send_code">發送驗證碼</button>
+          </div>
+        </div>
+        <button class="btn btn-full btn-lg" onclick="doMobileLogin()" data-i18n="btn_login">登入</button>
+      </div>
+
+      <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--x-gray);">
+        <span data-i18n="no_account">還沒有帳戶？</span><a style="color:var(--x-blue);" onclick="switchAuthTab('register')" data-i18n="register_now">立即註冊</a>
+      </p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="auth-register-form" style="display:none;">
+      <div class="form-group">
+        <label data-i18n="label_name">姓名</label>
+        <input class="input" type="text" data-i18n-placeholder="ph_name" placeholder="輸入姓名" id="reg-name">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_email">電郵地址</label>
+        <input class="input" type="email" placeholder="your@email.com" id="reg-email">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_phone">手機號碼</label>
+        <input class="input" type="tel" placeholder="+852 XXXX XXXX" id="reg-phone">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_password">密碼</label>
+        <input class="input" type="password" data-i18n-placeholder="ph_pw_min" placeholder="至少8位字符" id="reg-password">
+      </div>
+      <div class="form-group">
+        <label data-i18n="label_account_type">帳戶類型</label>
+        <div class="checkbox-group" id="role-select">
+          <div class="checkbox-item checked" onclick="selectRole(this,'USER')">
+            <input type="radio" name="role" value="USER" checked> <span data-i18n="role_user">普通用戶</span>
+          </div>
+          <div class="checkbox-item" onclick="selectRole(this,'AGENT')">
+            <input type="radio" name="role" value="AGENT"> <span data-i18n="role_agent">地產代理</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-full btn-lg" onclick="doRegister()" data-i18n="tab_register">註冊</button>
+      <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--x-gray);">
+        <span data-i18n="has_account">已有帳戶？</span><a style="color:var(--x-blue);" onclick="switchAuthTab('login')" data-i18n="tab_login">登入</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- User Dropdown Menu -->
+<div id="user-menu" style="position:fixed;top:64px;right:16px;background:var(--x-black);border:1px solid var(--x-border);border-radius:12px;padding:8px;z-index:150;display:none;min-width:200px;">
+  <a onclick="showPage('listing')" style="display:block;padding:12px 16px;border-radius:8px;font-size:14px;transition:background .2s;" data-i18n="menu_listing">📝 放盤管理</a>
+  <a onclick="showPage('admin')" style="display:block;padding:12px 16px;border-radius:8px;font-size:14px;transition:background .2s;" data-i18n="menu_dashboard">📊 我的儀表板</a>
+  <a style="display:block;padding:12px 16px;border-radius:8px;font-size:14px;transition:background .2s;" data-i18n="menu_favorites">❤️ 我的收藏</a>
+  <a style="display:block;padding:12px 16px;border-radius:8px;font-size:14px;transition:background .2s;" data-i18n="menu_settings">⚙️ 帳戶設定</a>
+  <div style="border-top:1px solid var(--x-border);margin:4px 0;"></div>
+  <a onclick="doLogout()" style="display:block;padding:12px 16px;border-radius:8px;font-size:14px;color:var(--x-red);transition:background .2s;" data-i18n="menu_logout">登出</a>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ===================== HOME PAGE ===================== -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="container hero-content">
+      <h1><span data-i18n="hero_title1">香港商業物業</span><br><span data-i18n="hero_title2">租賃平台</span></h1>
+      <p data-i18n="hero_desc">尋找完美的辦公室、零售店舖、倉庫或工業空間。覆蓋全港18區，500+精選商業盤源。</p>
+      <div class="search-box">
+        <div class="search-grid">
+          <select class="select" id="home-search-district"><option value="" data-i18n="opt_all_district">所有區域</option></select>
+          <input class="input" type="text" data-i18n-placeholder="ph_search_area" placeholder="輸入地區或大厦名稱" id="home-search-keyword">
+          <select class="select" id="home-search-type"><option value="" data-i18n="opt_all_type">所有類型</option><option data-i18n="type_office">辦公室</option><option data-i18n="type_shop">零售店舖</option><option data-i18n="type_warehouse">倉庫</option><option data-i18n="type_industrial">工業大厦</option><option data-i18n="type_restaurant">餐廳</option><option data-i18n="type_cowork">共享辦公</option></select>
+          <select class="select" id="home-search-rent"><option value="" data-i18n="opt_rent_range">租金範圍</option><option value="0-10000" data-i18n="rent_below_10k">HK$10,000 以下</option><option value="10000-20000" data-i18n="rent_10k_20k">HK$10,000 - HK$20,000</option><option value="20000-50000" data-i18n="rent_20k_50k">HK$20,000 - HK$50,000</option><option value="50000+" data-i18n="rent_above_50k">HK$50,000+</option></select>
+          <button class="btn" onclick="doSearch()" data-i18n="btn_search">搜尋盤源</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div><div class="stat-value">500+</div><div class="stat-label" data-i18n="stat_active">活躍盤源</div></div>
+        <div><div class="stat-value">120+</div><div class="stat-label" data-i18n="stat_agents">註冊代理</div></div>
+        <div><div class="stat-value">1,200+</div><div class="stat-label" data-i18n="stat_deals">成交案例</div></div>
+        <div><div class="stat-value">18區</div><div class="stat-label" data-i18n="stat_districts">覆蓋區域</div></div>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <div class="section-header"><h2 class="section-title" data-i18n="featured_title">精選商業盤源</h2><a class="section-link" onclick="showPage('properties')" data-i18n="view_all">查看全部 →</a></div>
+      <div class="property-grid" id="featured-grid"></div>
+    </div>
+  </section>
+  <section class="cta">
+    <div class="container"><h2 data-i18n="cta_title">有物業要出租？</h2><p data-i18n="cta_desc">免費發佈盤源，觸達全港潛在租客。已有 120+ 地產代理入駐。</p><button class="btn btn-lg" onclick="showPage('listing')" data-i18n="cta_btn">立即放盤</button></div>
+  </section>
+</div>
+
+<!-- ===================== PROPERTIES PAGE ===================== -->
+<div class="page" id="page-properties">
+  <div style="background:var(--x-dark);border-bottom:1px solid var(--x-border);padding:32px 0;">
+    <div class="container"><h1 style="font-size:28px;font-weight:800;" data-i18n="prop_page_title">商業租盤</h1><p style="color:var(--x-gray);" data-i18n="prop_page_desc">瀏覽全港商業物業租賃盤源</p></div>
+  </div>
+  <div class="filters-bar">
+    <div class="container">
+      <div class="filters-grid">
+        <select class="select" id="filter-district"><option value="" data-i18n="opt_all_district">所有區域</option></select>
+        <select class="select" id="filter-type"><option value="" data-i18n="opt_all_type">所有類型</option><option data-i18n="type_office">辦公室</option><option data-i18n="type_shop">零售店舖</option><option data-i18n="type_warehouse">倉庫</option><option data-i18n="type_industrial">工業大厦</option><option data-i18n="type_restaurant">餐廳</option><option data-i18n="type_exhibition">展覽廳</option><option data-i18n="type_cowork">共享辦公</option></select>
+        <select class="select" id="filter-rent"><option value="" data-i18n="opt_rent_range">租金範圍</option><option value="0-10000" data-i18n="rent_below_10k">HK$10,000 以下</option><option value="10000-20000" data-i18n="rent_10k_20k">HK$10,000 - HK$20,000</option><option value="20000-50000" data-i18n="rent_20k_50k">HK$20,000 - HK$50,000</option><option value="50000+" data-i18n="rent_above_50k">HK$50,000+</option></select>
+        <input class="input" type="text" data-i18n-placeholder="ph_area_building" placeholder="地區/大厦名稱" id="filter-keyword">
+        <button class="btn" onclick="doFilter()" data-i18n="btn_search">搜尋</button>
+      </div>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container">
+      <div class="results-bar"><p style="color:var(--x-gray);"><span data-i18n="found_prefix">找到</span> <strong style="color:#fff;" id="results-count">9</strong> <span data-i18n="found_suffix">個盤源</span></p><select class="select" style="width:auto;" id="sort-select" onchange="doSort()"><option value="latest" data-i18n="sort_latest">最新發佈</option><option value="rent-asc" data-i18n="sort_rent_asc">租金從低到高</option><option value="rent-desc" data-i18n="sort_rent_desc">租金從高到低</option><option value="area-desc" data-i18n="sort_area_desc">面積從大到小</option></select></div>
+      <div class="property-grid" id="properties-grid"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== MAP PAGE ===================== -->
+<div class="page" id="page-map">
+  <div style="border-bottom:1px solid var(--x-border);padding:32px 0;background:var(--x-dark);">
+    <div class="container"><h1 style="font-size:28px;font-weight:800;" data-i18n="map_page_title">地圖搵樓</h1><p style="color:var(--x-gray);" data-i18n="map_page_desc">在全港地圖上瀏覽商業物業位置</p></div>
+  </div>
+  <section class="section">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+        <div id="full-map" class="map-container"></div>
+        <div class="map-sidebar">
+          <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;" data-i18n="map_sidebar_title">盤源列表</h3>
+          <div id="map-sidebar-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== LISTING FORM PAGE ===================== -->
+<div class="page" id="page-listing">
+  <div class="listing-page-header">
+    <div class="container"><h1 style="font-size:28px;font-weight:800;" data-i18n="listing_page_title">放盤 — 發佈物業</h1><p style="color:var(--x-gray);" data-i18n="listing_page_desc">填寫物業資訊，發佈到平台供租客瀏覽</p></div>
+  </div>
+  <section class="section">
+    <div class="container">
+      <div class="step-indicator">
+        <div class="step active" onclick="goStep(1)" id="step-1" data-i18n="step1">1. 基本資訊</div>
+        <div class="step" onclick="goStep(2)" id="step-2" data-i18n="step2">2. 位置面積</div>
+        <div class="step" onclick="goStep(3)" id="step-3" data-i18n="step3">3. 租金詳情</div>
+        <div class="step" onclick="goStep(4)" id="step-4" data-i18n="step4">4. 設施描述</div>
+        <div class="step" onclick="goStep(5)" id="step-5" data-i18n="step5">5. 圖片上傳</div>
+      </div>
+
+      <!-- Step 1 -->
+      <div id="listing-step-1" class="form-section">
+        <h3>📋 <span data-i18n="step1">基本資訊</span></h3>
+        <div class="form-section-grid">
+          <div class="form-group"><label data-i18n="ls_label_title">物業標題 *</label><input class="input" data-i18n-placeholder="ph_prop_title" placeholder="如：中環甲級寫字樓" id="ls-title"></div>
+          <div class="form-group"><label data-i18n="ls_label_type">物業類型 *</label>
+            <select class="select" id="ls-type"><option value="" data-i18n="opt_select_type">選擇類型</option><option data-i18n="type_office">辦公室</option><option data-i18n="type_shop">零售店舖</option><option data-i18n="type_warehouse">倉庫</option><option data-i18n="type_industrial">工業大厦</option><option data-i18n="type_restaurant">餐廳</option><option data-i18n="type_exhibition">展覽廳</option><option data-i18n="type_cowork">共享辦公</option><option data-i18n="type_other">其他</option></select>
+          </div>
+          <div class="form-group"><label data-i18n="ls_label_source">盤源選項 *</label>
+            <select class="select" id="ls-source"><option value="" data-i18n="opt_select_source">選擇盤源</option><option value="OWNER" data-i18n="ls_source_owner">業主</option><option value="AGENT" data-i18n="ls_source_agent">地產代理</option></select>
+          </div>
+          <div class="form-group"><label data-i18n="ls_label_category">出租/出售 *</label>
+            <div class="checkbox-group"><div class="checkbox-item checked" onclick="toggleCheckboxItem(this)" data-value="FOR_RENT"><input type="radio" name="category" checked><span data-i18n="for_rent">出租</span></div><div class="checkbox-item" onclick="toggleCheckboxItem(this)" data-value="FOR_SALE"><input type="radio" name="category"><span data-i18n="for_sale">出售</span></div></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
+          <button class="btn" onclick="goStep(2)" data-i18n="btn_next">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="listing-step-2" class="form-section" style="display:none;">
+        <h3>📍 <span data-i18n="step2">位置與面積</span></h3>
+        <div class="form-section-grid">
+          <div class="form-group"><label data-i18n="ls_label_district">區域 *</label><select class="select" id="ls-district" onchange="updateLsAreaOptions()"><option value="" data-i18n="opt_select_district">選擇區域</option></select></div>
+          <div class="form-group"><label data-i18n="ls_label_area">地區 *</label><select class="select" id="ls-area"><option value="" data-i18n="opt_select_area">選擇地區</option></select></div>
+          <div class="form-group"><label data-i18n="ls_label_address">詳細地址 *</label><input class="input" data-i18n-placeholder="ph_street_addr" placeholder="街道地址" id="ls-address"></div>
+          <div class="form-group"><label data-i18n="ls_label_building">大厦名稱</label><input class="input" data-i18n-placeholder="ph_building" placeholder="大厦/商場名稱" id="ls-building"></div>
+          <div class="form-group"><label data-i18n="ls_label_floor">樓層</label><input class="input" data-i18n-placeholder="ph_floor" placeholder="如：25樓、地面" id="ls-floor"></div>
+          <div class="form-group"><label data-i18n="ls_label_direction">朝向</label><select class="select" id="ls-direction"><option value="" data-i18n="opt_select">選擇</option><option data-i18n="dir_east">東</option><option data-i18n="dir_south">南</option><option data-i18n="dir_west">西</option><option data-i18n="dir_north">北</option><option data-i18n="dir_se">東南</option><option data-i18n="dir_sw">西南</option><option data-i18n="dir_ne">東北</option><option data-i18n="dir_nw">西北</option></select></div>
+          <div class="form-group"><label data-i18n="ls_label_gross_area">建築面積 (平方呎) *</label><input class="input" type="number" placeholder="800" id="ls-gross-area"></div>
+          <div class="form-group"><label data-i18n="ls_label_net_area">實用面積 (平方呎)</label><input class="input" type="number" placeholder="600" id="ls-net-area"></div>
+        </div>
+        <div style="margin-top:16px;">
+          <label style="font-size:14px;color:var(--x-gray);margin-bottom:8px;display:block;">📍 <span data-i18n="ls_label_map_pin">在地圖上標記位置</span></label>
+          <div id="listing-mini-map" class="mini-map" style="height:200px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:12px;margin-top:24px;">
+          <button class="btn btn-outline" onclick="goStep(1)" data-i18n="btn_prev">← 上一步</button>
+          <button class="btn" onclick="goStep(3)" data-i18n="btn_next">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div id="listing-step-3" class="form-section" style="display:none;">
+        <h3>💰 <span data-i18n="step3">租金詳情</span></h3>
+        <div class="form-section-grid">
+          <div class="form-group"><label data-i18n="ls_label_rent">月租 (HK$) *</label><input class="input" type="number" placeholder="25000" id="ls-rent"></div>
+          <div class="form-group"><label data-i18n="ls_label_mgmt_fee">管理費 (HK$/月)</label><input class="input" type="number" placeholder="2000" id="ls-mgmt-fee"></div>
+          <div class="form-group"><label data-i18n="ls_label_aircon_fee">冷氣費 (HK$/月)</label><input class="input" type="number" placeholder="0" id="ls-aircon-fee"></div>
+          <div class="form-group"><label data-i18n="ls_label_renovation">裝修狀況</label><select class="select" id="ls-renovation"><option value="" data-i18n="opt_select">選擇</option><option data-i18n="ren_full">全裝修</option><option data-i18n="ren_partial">部分裝修</option><option data-i18n="ren_basic">基本裝修</option><option data-i18n="ren_bare">毛坯</option><option data-i18n="ren_shell">殼房</option></select></div>
+          <div class="form-group"><label data-i18n="ls_label_furnishing">裝修配置</label>
+            <select class="select" id="ls-furnishing"><option value="" data-i18n="opt_select">選擇</option><option data-i18n="furn_full">全裝修</option><option data-i18n="furn_partial">部分配置</option><option data-i18n="furn_empty">空房</option><option data-i18n="furn_shell">殼房</option></select>
+          </div>
+          <div class="form-group"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:12px;margin-top:24px;">
+          <button class="btn btn-outline" onclick="goStep(2)" data-i18n="btn_prev">← 上一步</button>
+          <button class="btn" onclick="goStep(4)" data-i18n="btn_next">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div id="listing-step-4" class="form-section" style="display:none;">
+        <h3>✨ <span data-i18n="step4">配套設施與描述</span></h3>
+        <div class="form-group"><label data-i18n="ls_label_facilities">配套設施</label>
+          <div class="checkbox-group" id="ls-facilities">
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_24h_security">24小時保安</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_central_ac">中央冷氣</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_high_speed_lift">高速升降機</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_parking">停車場</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_meeting_room">會議室</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_reception">接待處</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_goods_lift">貨運升降機</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_loading_area">裝卸區</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_restaurant_license">食肆牌</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_network">網絡</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_pantry">茶水間</span></div>
+            <div class="checkbox-item" onclick="toggleCheckboxItem(this)"><input type="checkbox"><span data-i18n="fac_private_toilet">獨立廁所</span></div>
+          </div>
+        </div>
+        <div class="form-group"><label data-i18n="ls_label_desc">物業描述</label><textarea class="textarea" data-i18n-placeholder="ph_desc" placeholder="詳細描述物業特點、周邊環境、交通配套等..." id="ls-desc"></textarea></div>
+        <div style="display:flex;justify-content:space-between;gap:12px;margin-top:24px;">
+          <button class="btn btn-outline" onclick="goStep(3)" data-i18n="btn_prev">← 上一步</button>
+          <button class="btn" onclick="goStep(5)" data-i18n="btn_next">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div id="listing-step-5" class="form-section" style="display:none;">
+        <h3>📸 <span data-i18n="step5">圖片上傳</span></h3>
+        <div class="upload-zone" onclick="showToast(i18n[currentLang].toast_upload)">
+          <div class="icon">📁</div>
+          <p style="font-weight:700;" data-i18n="upload_click">點擊上傳圖片</p>
+          <p style="color:var(--x-gray);font-size:13px;" data-i18n="upload_hint">支援 JPG、PNG 格式，最多 10 張</p>
+        </div>
+        <div class="form-group" style="margin-top:24px;">
+          <label data-i18n="ls_label_agent_info">代理/聯繫人資訊</label>
+          <div class="form-section-grid">
+            <div class="form-group"><label data-i18n="ls_label_contact_name">聯繫人姓名</label><input class="input" placeholder="姓名" id="ls-agent-name"></div>
+            <div class="form-group"><label data-i18n="ls_label_contact_phone">聯繫電話</label><input class="input" placeholder="+852 XXXX XXXX" id="ls-agent-phone"></div>
+            <div class="form-group"><label data-i18n="ls_label_contact_email">聯繫電郵</label><input class="input" placeholder="email@example.com" id="ls-agent-email"></div>
+            <div class="form-group"><label data-i18n="ls_label_agent_company">代理公司</label><input class="input" placeholder="公司名稱" id="ls-agent-co"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:12px;margin-top:24px;">
+          <button class="btn btn-outline" onclick="goStep(4)" data-i18n="btn_prev">← 上一步</button>
+          <button class="btn btn-lg" onclick="submitListing()" data-i18n="btn_submit_listing">✅ 提交放盤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== DETAIL PAGE ===================== -->
+<div class="page" id="page-detail">
+  <div class="breadcrumb"><div class="container"><a onclick="showPage('home')" data-i18n="nav_home">首頁</a><span>/</span><a onclick="showPage('properties')" data-i18n="nav_properties">租盤</a><span>/</span><span style="color:#fff;" id="detail-breadcrumb" data-i18n="detail_breadcrumb">物業詳情</span></div></div>
+  <section class="section"><div class="container"><div class="detail-grid" id="detail-content"></div></div></section>
+</div>
+
+<!-- ===================== ADMIN PAGE ===================== -->
+<div class="page" id="page-admin">
+  <div style="border-bottom:1px solid var(--x-border);padding:32px 0;">
+    <div class="container"><h1 style="font-size:28px;font-weight:800;" data-i18n="admin_page_title">管理後台</h1><p style="color:var(--x-gray);" data-i18n="admin_page_desc">香港租房網管理系統</p></div>
+  </div>
+  <section class="section">
+    <div class="container">
+      <div class="admin-stats">
+        <div class="admin-stat-card"><div><div class="stat-label" data-i18n="stat_active">活躍盤源</div><div class="stat-value" style="color:var(--x-blue);">128</div></div><div class="icon">🏢</div></div>
+        <div class="admin-stat-card"><div><div class="stat-label" data-i18n="admin_pending">待審核</div><div class="stat-value" style="color:#ffc107;">12</div></div><div class="icon">⏳</div></div>
+        <div class="admin-stat-card"><div><div class="stat-label" data-i18n="admin_users">註冊用戶</div><div class="stat-value" style="color:var(--x-green);">456</div></div><div class="icon">👥</div></div>
+        <div class="admin-stat-card"><div><div class="stat-label" data-i18n="admin_queries">本月查詢</div><div class="stat-value" style="color:var(--x-blue);">89</div></div><div class="icon">📧</div></div>
+      </div>
+      <div class="admin-actions">
+        <div class="admin-action-card" onclick="showPage('properties')"><h3>🏢 <span data-i18n="admin_manage_props">管理盤源</span></h3><p data-i18n="admin_manage_desc">查看、編輯、審核物業資訊</p></div>
+        <div class="admin-action-card" onclick="showPage('listing')"><h3>📝 <span data-i18n="admin_publish">發佈盤源</span></h3><p data-i18n="admin_publish_desc">發佈新的商業物業</p></div>
+        <div class="admin-action-card"><h3>⚙️ <span data-i18n="admin_settings">系統設定</span></h3><p data-i18n="admin_settings_desc">配置網站參數和選項</p></div>
+      </div>
+      <div class="admin-table">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h2 style="font-size:20px;font-weight:700;" data-i18n="admin_recent_props">最近盤源</h2><a class="section-link" onclick="showPage('properties')" data-i18n="view_all">查看全部 →</a></div>
+        <table><thead><tr><th data-i18n="th_prop_name">物業名稱</th><th data-i18n="th_status">狀態</th><th data-i18n="th_views">瀏覽量</th><th data-i18n="th_published">發佈時間</th><th data-i18n="th_action">操作</th></tr></thead><tbody id="admin-table-body"></tbody></table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== SUB-PAGES ===================== -->
+
+<!-- 精選盤源 -->
+<div class="page" id="page-sub-featured">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_featured_title">🌟 精選盤源</span></h1><p data-i18n="sub_featured_desc">經過嚴格篩選的高質量商業物業，為您提供最值得考慮的租盤選擇</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-featured-grid"></div></div></section>
+</div>
+
+<!-- 最新上架 -->
+<div class="page" id="page-sub-new">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_new_title">🆕 最新上架</span></h1><p data-i18n="sub_new_desc">剛剛發佈的商業租盤，搶先瀏覽最新物業</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-new-grid"></div></div></section>
+</div>
+
+<!-- 熱門租盤 -->
+<div class="page" id="page-sub-popular">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_popular_title">🔥 熱門租盤</span></h1><p data-i18n="sub_popular_desc">最受關注的商業物業，瀏覽量最高的租盤</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-popular-grid"></div></div></section>
+</div>
+
+<!-- 高級物業 -->
+<div class="page" id="page-sub-premium">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_premium_title">💎 高級物業</span></h1><p data-i18n="sub_premium_desc">租金 HK$30,000+ 的頂級商業物業，甲級寫字樓及核心地段商舖</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-premium-grid"></div></div></section>
+</div>
+
+<!-- 辦公室 -->
+<div class="page" id="page-sub-office">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_office_title">🏢 辦公室租盤</span></h1><p data-i18n="sub_office_desc">全港辦公室租賃盤源，甲級寫字樓到創意工作室</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-office-grid"></div></div></section>
+</div>
+
+<!-- 零售店舖 -->
+<div class="page" id="page-sub-shop">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_shop_title">🏪 零售店舖租盤</span></h1><p data-i18n="sub_shop_desc">核心地段臨街商舖，適合各類零售業務</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-shop-grid"></div></div></section>
+</div>
+
+<!-- 倉庫 -->
+<div class="page" id="page-sub-warehouse">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_warehouse_title">📦 倉庫租盤</span></h1><p data-i18n="sub_warehouse_desc">大型倉儲單位，適合物流及存儲需求</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-warehouse-grid"></div></div></section>
+</div>
+
+<!-- 工業大厦 -->
+<div class="page" id="page-sub-industrial">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_industrial_title">🏭 工業大厦租盤</span></h1><p data-i18n="sub_industrial_desc">工業區性價比極高的單位，倉儲及輕工業用途</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-industrial-grid"></div></div></section>
+</div>
+
+<!-- 餐廳 -->
+<div class="page" id="page-sub-restaurant">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_restaurant_title">🍽️ 餐廳租盤</span></h1><p data-i18n="sub_restaurant_desc">已領食肆牌的餐飲舖位，適合各類餐飲業務</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-restaurant-grid"></div></div></section>
+</div>
+
+<!-- 共享辦公 -->
+<div class="page" id="page-sub-cowork">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_cowork_title">🤝 共享辦公租盤</span></h1><p data-i18n="sub_cowork_desc">靈活租期的共享辦公空間，適合初創及自由工作者</p></div></div>
+  <section class="section"><div class="container"><div class="property-grid" id="sub-cowork-grid"></div></div></section>
+</div>
+
+<!-- 盤源管理 -->
+<div class="page" id="page-sub-listing-mgmt">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_listing_mgmt_title">📋 盤源管理</span></h1><p data-i18n="sub_listing_mgmt_desc">管理您發佈的所有租盤，查看瀏覽量和狀態</p></div></div>
+  <section class="section"><div class="container" id="sub-listing-mgmt-content"></div></section>
+</div>
+
+<!-- 付費套餐 -->
+<div class="page" id="page-sub-pricing">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_pricing_title">💰 付費套餐</span></h1><p data-i18n="sub_pricing_desc">選擇適合您的套餐，提升盤源曝光率</p></div></div>
+  <section class="section"><div class="container" id="sub-pricing-content"></div></section>
+</div>
+
+<!-- 代理入駐 -->
+<div class="page" id="page-sub-agent-signup">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_agent_signup_title">👨‍💼 代理入駐</span></h1><p data-i18n="sub_agent_signup_desc">成為認證地產代理，獲取更多客源</p></div></div>
+  <section class="section"><div class="container" id="sub-agent-signup-content"></div></section>
+</div>
+
+<!-- 系統概览 -->
+<div class="page" id="page-sub-admin-overview">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_admin_overview_title">📊 系統概览</span></h1><p data-i18n="sub_admin_overview_desc">平台運營數據一目了然</p></div></div>
+  <section class="section"><div class="container" id="sub-admin-overview-content"></div></section>
+</div>
+
+<!-- 用戶管理 -->
+<div class="page" id="page-sub-admin-users">
+  <div class="sub-hero"><div class="container"><h1><span data-i18n="sub_admin_users_title">👥 用戶管理</span></h1><p data-i18n="sub_admin_users_desc">管理所有註冊用戶，審核代理入駐申請</p></div></div>
+  <section class="section"><div class="container" id="sub-admin-users-content"></div></section>
+</div>
+
+<!-- Footer -->
+<footer class="footer"><div class="container">© 2026 <span data-i18n="brand">香港租房網</span>. All rights reserved. · <a style="color:var(--x-blue);" href="mailto:support@hkrental.com">support@hkrental.com</a></div></footer>
+
+<script>
+// ===== I18N =====
+const i18n = {
+  zh: {
+    brand:'香港租房網',
+    nav_home:'首頁',nav_properties:'租盤',nav_map:'地圖',nav_listing:'放盤',nav_admin:'管理',
+    btn_login:'登入',btn_search:'搜尋盤源',btn_next:'下一步 →',btn_prev:'← 上一步',
+    btn_send_code:'發送驗證碼',btn_submit_listing:'✅ 提交放盤',
+    auth_subtitle:'香港商業租賃平台',
+    tab_login:'登入',tab_register:'註冊',
+    lm_email:'電郵登入',lm_mobile:'手機登入',
+    label_email:'電郵地址',label_password:'密碼',label_phone:'手機號碼',label_name:'姓名',
+    label_sms_code:'驗證碼',label_account_type:'帳戶類型',
+    ph_password:'輸入密碼',ph_sms_code:'輸入6位驗證碼',ph_name:'輸入姓名',ph_pw_min:'至少8位字符',
+    role_user:'普通用戶',role_agent:'地產代理',
+    no_account:'還沒有帳戶？',register_now:'立即註冊',has_account:'已有帳戶？',
+    menu_listing:'📝 放盤管理',menu_dashboard:'📊 我的儀表板',menu_favorites:'❤️ 我的收藏',menu_settings:'⚙️ 帳戶設定',menu_logout:'登出',
+    hero_title1:'香港商業物業',hero_title2:'租賃平台',
+    hero_desc:'尋找完美的辦公室、零售店舖、倉庫或工業空間。覆蓋全港18區，500+精選商業盤源。',
+    ph_search_area:'輸入地區或大厦名稱',
+    opt_all_type:'所有類型',opt_all_district:'所有區域',opt_rent_range:'租金範圍',opt_select:'選擇',opt_select_type:'選擇類型',opt_select_district:'選擇區域',opt_select_area:'選擇地區',
+    type_office:'辦公室',type_shop:'零售店舖',type_warehouse:'倉庫',type_industrial:'工業大厦',type_restaurant:'餐廳',type_cowork:'共享辦公',type_exhibition:'展覽廳',type_other:'其他',
+    dist_hk_island:'香港島',dist_kln:'九龍',dist_nt:'新界',dist_nt_east:'新界東',dist_nt_west:'新界西',
+    rent_below_10k:'HK$10,000 以下',rent_10k_20k:'HK$10,000 - HK$20,000',rent_20k_50k:'HK$20,000 - HK$50,000',rent_above_50k:'HK$50,000+',
+    stat_active:'活躍盤源',stat_agents:'註冊代理',stat_deals:'成交案例',stat_districts:'覆蓋區域',
+    featured_title:'精選商業盤源',view_all:'查看全部 →',
+    cta_title:'有物業要出租？',cta_desc:'免費發佈盤源，觸達全港潛在租客。已有 120+ 地產代理入駐。',cta_btn:'立即放盤',
+    prop_page_title:'商業租盤',prop_page_desc:'瀏覽全港商業物業租賃盤源',
+    ph_area_building:'地區/大厦名稱',
+    found_prefix:'找到',found_suffix:'個盤源',
+    sort_latest:'最新發佈',sort_rent_asc:'租金從低到高',sort_rent_desc:'租金從高到低',sort_area_desc:'面積從大到小',
+    map_page_title:'地圖搵樓',map_page_desc:'在全港地圖上瀏覽商業物業位置',map_sidebar_title:'盤源列表',
+    listing_page_title:'放盤 — 發佈物業',listing_page_desc:'填寫物業資訊，發佈到平台供租客瀏覽',
+    step1:'1. 基本資訊',step2:'2. 位置面積',step3:'3. 租金詳情',step4:'4. 設施描述',step5:'5. 圖片上傳',
+    ls_label_title:'物業標題 *',ls_label_type:'物業類型 *',ls_label_category:'出租/出售 *',ls_label_source:'盤源選項 *',
+    ls_source_owner:'業主',ls_source_agent:'地產代理',
+    opt_select_source:'選擇盤源',
+    ph_prop_title:'如：中環甲級寫字樓',
+    ls_label_district:'區域 *',ls_label_area:'地區 *',ls_label_address:'詳細地址 *',ls_label_building:'大厦名稱',
+    ls_label_floor:'樓層',ls_label_direction:'朝向',ls_label_gross_area:'建築面積 (平方呎) *',ls_label_net_area:'實用面積 (平方呎)',
+    ph_area_example:'如：中環、銅鑼灣',ph_street_addr:'街道地址',ph_building:'大厦/商場名稱',ph_floor:'如：25樓、地面',
+    dir_east:'東',dir_south:'南',dir_west:'西',dir_north:'北',dir_se:'東南',dir_sw:'西南',dir_ne:'東北',dir_nw:'西北',
+    ls_label_map_pin:'在地圖上標記位置',
+    ls_label_rent:'月租 (HK$) *',ls_label_mgmt_fee:'管理費 (HK$/月)',ls_label_aircon_fee:'冷氣費 (HK$/月)',
+    ls_label_renovation:'裝修狀況',ls_label_furnishing:'裝修配置',
+    ren_full:'全裝修',ren_partial:'部分裝修',ren_basic:'基本裝修',ren_bare:'毛坯',ren_shell:'殼房',
+    furn_full:'全裝修',furn_partial:'部分配置',furn_empty:'空房',furn_shell:'殼房',
+    ls_label_facilities:'配套設施',ls_label_desc:'物業描述',ls_label_agent_info:'代理/聯繫人資訊',
+    ph_desc:'詳細描述物業特點、周邊環境、交通配套等...',
+    ls_label_contact_name:'聯繫人姓名',ls_label_contact_phone:'聯繫電話',ls_label_contact_email:'聯繫電郵',ls_label_agent_company:'代理公司',
+    fac_24h_security:'24小時保安',fac_central_ac:'中央冷氣',fac_high_speed_lift:'高速升降機',fac_parking:'停車場',
+    fac_meeting_room:'會議室',fac_reception:'接待處',fac_goods_lift:'貨運升降機',fac_loading_area:'裝卸區',
+    fac_restaurant_license:'食肆牌',fac_network:'網絡',fac_pantry:'茶水間',fac_private_toilet:'獨立廁所',
+    for_rent:'出租',for_sale:'出售',
+    upload_click:'點擊上傳圖片',upload_hint:'支援 JPG、PNG 格式，最多 10 張',
+    detail_breadcrumb:'物業詳情',
+    admin_page_title:'管理後台',admin_page_desc:'香港租房網管理系統',
+    admin_pending:'待審核',admin_users:'註冊用戶',admin_queries:'本月查詢',
+    admin_manage_props:'管理盤源',admin_manage_desc:'查看、編輯、審核物業資訊',
+    admin_publish:'發佈盤源',admin_publish_desc:'發佈新的商業物業',
+    admin_settings:'系統設定',admin_settings_desc:'配置網站參數和選項',
+    admin_recent_props:'最近盤源',
+    th_prop_name:'物業名稱',th_status:'狀態',th_views:'瀏覽量',th_published:'發佈時間',th_action:'操作',
+    toast_login_success:'登入成功！歡迎回來，',toast_register_success:'註冊成功！歡迎，',
+    toast_logout:'已登出',toast_need_fields:'請填寫所有必填欄位',
+    toast_need_email_pw:'請填寫電郵和密碼',toast_need_phone_code:'請填寫手機號碼和驗證碼',
+    toast_sms_sent:'驗證碼已發送到手機',toast_sms_sent_to:'驗證碼已發送到 ',
+    toast_listing_success:'🎉 放盤提交成功！物業將在審核後上線。',
+    toast_upload:'圖片上傳功能將在上线版本中啟用',
+    toast_inquiry_sent:'查詢已發送！代理將在24小時內回覆。',
+    toast_favorited:'已收藏此盤！',toast_location_marked:'位置已標記：',
+    toast_action_view:'查看',
+    // Dynamic text
+    prop_type_office:'辦公室',prop_type_shop:'零售店舖',prop_type_warehouse:'倉庫',prop_type_industrial:'工業大厦',prop_type_restaurant:'餐廳',prop_type_cowork:'共享辦公',prop_type_exhibition:'展覽廳',
+    prop_month:'/月',prop_gross:'建築:',prop_net:'實用:',prop_days_ago:'天前發佈',prop_view_detail:'查看詳情 →',
+    detail_label_gross_area:'建築面積',detail_label_net_area:'實用面積',detail_label_floor:'樓層',detail_label_renovation:'裝修狀況',detail_label_mgmt_fee:'管理費',detail_label_direction:'朝向',
+    detail_label_sqft:'平方呎',detail_section_desc:'物業描述',detail_section_facilities:'配套設施',detail_section_location:'物業位置',
+    detail_agent_info:'代理資訊',detail_agent_company:'代理公司',detail_btn_inquiry:'發送查詢',detail_btn_favorite:'❤️ 收藏此盤',detail_label_views:'瀏覽量',
+    detail_label_building:'大厦:',detail_label_area:'區域:',detail_label_floor_info:'樓層:',
+    status_active:'活躍',status_pending:'待審核',status_rented:'已租出',
+    status_days_ago:'天前',
+    map_popup_type:' | ',map_popup_sqft:'呎',map_popup_detail:'查看詳情 →',
+    map_popup_location_pin:'物業位置標記',
+    // Sub-nav dropdowns
+    sub_home_featured:'🌟 精選盤源',sub_home_new:'🆕 最新上架',sub_home_popular:'🔥 熱門租盤',sub_home_premium:'💎 高級物業',
+    sub_prop_office:'🏢 辦公室',sub_prop_shop:'便利店 零售店舖',sub_prop_warehouse:'📦 倉庫',sub_prop_industrial:'🏭 工業大厦',sub_prop_restaurant:'🍽️ 餐廳',sub_prop_cowork:'🤝 共享辦公',
+    sub_map_hk_island:'📍 香港島',sub_map_kln:'📍 九龍',sub_map_nt:'📍 新界',sub_map_near_mtr:'🚇 港鐵沿線',
+    sub_list_new:'📝 新盤發佈',sub_list_manage:'📋 盤源管理',sub_list_package:'💰 付費套餐',sub_list_agent:'👨‍💼 代理入駐',
+    sub_admin_overview:'📊 系統概览',sub_admin_users:'👥 用戶管理',sub_admin_review:'✅ 盤源審核',sub_admin_settings:'⚙️ 系統設定',
+    // Sub-page content titles & descriptions
+    sub_featured_title:'精選盤源',sub_featured_desc:'經過嚴格篩選的高質量商業物業，為您提供最值得考慮的租盤選擇',
+    sub_new_title:'最新上架',sub_new_desc:'剛剛發佈的商業租盤，搶先瀏覽最新物業',
+    sub_popular_title:'熱門租盤',sub_popular_desc:'最受關注的商業物業，瀏覽量最高的租盤',
+    sub_premium_title:'高級物業',sub_premium_desc:'租金 HK$30,000+ 的頂級商業物業，甲級寫字樓及核心地段商舖',
+    sub_office_title:'辦公室租盤',sub_office_desc:'全港辦公室租賃盤源，甲級寫字樓到創意工作室',
+    sub_shop_title:'零售店舖租盤',sub_shop_desc:'核心地段臨街商舖，適合各類零售業務',
+    sub_warehouse_title:'倉庫租盤',sub_warehouse_desc:'大型倉儲單位，適合物流及存儲需求',
+    sub_industrial_title:'工業大厦租盤',sub_industrial_desc:'工業區性價比極高的單位，倉儲及輕工業用途',
+    sub_restaurant_title:'餐廳租盤',sub_restaurant_desc:'已領食肆牌的餐飲舗位，適合各類餐飲業務',
+    sub_cowork_title:'共享辦公租盤',sub_cowork_desc:'靈活租期的共享辦公空間，適合初創及自由工作者',
+    sub_listing_mgmt_title:'盤源管理',sub_listing_mgmt_desc:'管理您發佈的所有租盤，查看瀏覽量和狀態',
+    lm_edit:'編輯',lm_pause:'暫停',lm_delete:'刪除',lm_activate:'上架',lm_views_text:'瀏覽量',lm_status_text:'狀態',
+    sub_pricing_title:'付費套餐',sub_pricing_desc:'選擇適合您的套餐，提升盤源曝光率',
+    pricing_free:'免費版',pricing_basic:'基礎版',pricing_pro:'專業版',
+    pricing_free_price:'HK$0',pricing_basic_price:'HK$299',pricing_pro_price:'HK$899',
+    pricing_per_month:'/月',pricing_most_popular:'最受歡迎',
+    pf_1_listing:'1個盤源',pf_5_listing:'5個盤源',pf_20_listing:'20個盤源',
+    pf_basic_search:'基本搜尋',pf_priority_listing:'優先排序',pf_featured:'精選推薦',
+    pf_agent_profile:'代理個人檔案',pf_analytics:'瀏覽數據分析',pf_priority_support:'優先客服',
+    pf_dedicated_manager:'專屬客戶經理',pf_mtr_ad:'港鐵站廣告位',
+    pf_choose:'選擇套餐',
+    sub_agent_signup_title:'代理入駐',sub_agent_signup_desc:'成為認證地產代理，獲取更多客源',
+    ag_benefit1_title:'更多客源',ag_benefit1_desc:'平台每月 50,000+ 瀏覽量，自動匹配租客需求',
+    ag_benefit1_list:['免費客戶配對','精準需求推送','區域優先曝光'],
+    ag_benefit2_title:'提升品牌',ag_benefit2_desc:'建立專業代理檔案，展示成功案例和客戶評價',
+    ag_benefit2_list:['專業檔案頁面','客戶評價系統','成交記錄展示'],
+    ag_benefit3_title:'高效工具',ag_benefit3_desc:'一鍵發佈盤源，智能管理客戶查詢和跟進記錄',
+    ag_benefit3_list:['批量發佈盤源','查詢自動分配','跟進提醒系統'],
+    ag_benefit4_title:'數據洞察',ag_benefit4_desc:'了解市場趨勢，掌握區域租金走勢和競爭情況',
+    ag_benefit4_list:['租金趨勢分析','區域數據報告','競爭盤源監控'],
+    ag_signup_btn:'立即申請入駐',ag_already_agent:'已是認證代理？',ag_login_here:'登入管理',
+    sub_admin_overview_title:'系統概览',sub_admin_overview_desc:'平台運營數據一目了然',
+    ov_total_listings:'總盤源數',ov_active_listings:'活躍盤源',ov_new_this_month:'本月新增',ov_total_users:'總用戶數',
+    ov_agents:'註冊代理',ov_monthly_views:'月瀏覽量',ov_deals_completed:'成交數',ov_pending_review:'待審核',
+    ov_trend_up:'↑ 12%',ov_trend_stable:'持平',ov_recent_activity:'最近活動',
+    ov_new_user:'新用戶註冊',ov_new_listing:'新盤源發佈',ov_deal_completed:'成交完成',
+    sub_admin_users_title:'用戶管理',sub_admin_users_desc:'管理所有註冊用戶，審核代理入駐申請',
+    th_user_name:'用戶名稱',th_user_email:'電郵',th_user_role:'角色',th_user_status:'狀態',
+    th_user_joined:'註冊日期',th_user_actions:'操作',
+    role_user:'普通用戶',role_agent:'地產代理',role_admin:'管理員',
+    status_online:'在線',status_offline:'離線',
+    btn_approve:'批准',btn_suspend:'停用',btn_view:'查看',
+  },
+  en: {
+    brand:'HK Rental Hub',
+    nav_home:'Home',nav_properties:'Rentals',nav_map:'Map',nav_listing:'List Property',nav_admin:'Admin',
+    btn_login:'Log In',btn_search:'Search',btn_next:'Next →',btn_prev:'← Previous',
+    btn_send_code:'Send Code',btn_submit_listing:'✅ Submit Listing',
+    auth_subtitle:'Hong Kong Commercial Rental Platform',
+    tab_login:'Log In',tab_register:'Sign Up',
+    lm_email:'Email Login',lm_mobile:'Mobile Login',
+    label_email:'Email Address',label_password:'Password',label_phone:'Mobile Number',label_name:'Name',
+    label_sms_code:'Verification Code',label_account_type:'Account Type',
+    ph_password:'Enter password',ph_sms_code:'Enter 6-digit code',ph_name:'Enter name',ph_pw_min:'At least 8 characters',
+    role_user:'Regular User',role_agent:'Property Agent',
+    no_account:'Don\'t have an account? ',register_now:'Sign Up Now',has_account:'Already have an account? ',
+    menu_listing:'📝 My Listings',menu_dashboard:'📊 Dashboard',menu_favorites:'❤️ Favorites',menu_settings:'⚙️ Settings',menu_logout:'Log Out',
+    hero_title1:'Hong Kong Commercial',hero_title2:'Property Rentals',
+    hero_desc:'Find the perfect office, retail shop, warehouse or industrial space. Covering all 18 districts, 500+ curated listings.',
+    ph_search_area:'Enter district or building name',
+    opt_all_type:'All Types',opt_all_district:'All Districts',opt_rent_range:'Rent Range',opt_select:'Select',opt_select_type:'Select Type',opt_select_district:'Select District',opt_select_area:'Select Area',
+    type_office:'Office',type_shop:'Retail Shop',type_warehouse:'Warehouse',type_industrial:'Industrial',type_restaurant:'Restaurant',type_cowork:'Co-working',type_exhibition:'Exhibition Hall',type_other:'Other',
+    dist_hk_island:'Hong Kong Island',dist_kln:'Kowloon',dist_nt:'New Territories',dist_nt_east:'NT East',dist_nt_west:'NT West',
+    rent_below_10k:'Under HK$10,000',rent_10k_20k:'HK$10,000 - HK$20,000',rent_20k_50k:'HK$20,000 - HK$50,000',rent_above_50k:'HK$50,000+',
+    stat_active:'Active Listings',stat_agents:'Registered Agents',stat_deals:'Completed Deals',stat_districts:'Districts Covered',
+    featured_title:'Featured Listings',view_all:'View All →',
+    cta_title:'Have a property to rent?',cta_desc:'List for free, reach potential tenants across HK. 120+ agents already onboard.',cta_btn:'List Now',
+    prop_page_title:'Commercial Rentals',prop_page_desc:'Browse commercial property rentals across HK',
+    ph_area_building:'District / Building',
+    found_prefix:'Found',found_suffix:' listings',
+    sort_latest:'Latest',sort_rent_asc:'Rent: Low to High',sort_rent_desc:'Rent: High to Low',sort_area_desc:'Area: Large to Small',
+    map_page_title:'Map Search',map_page_desc:'Browse commercial properties on the HK map',map_sidebar_title:'Listing List',
+    listing_page_title:'List Your Property',listing_page_desc:'Fill in property details and publish for tenants',
+    step1:'1. Basic Info',step2:'2. Location & Area',step3:'3. Rent Details',step4:'4. Facilities & Description',step5:'5. Upload Images',
+    ls_label_title:'Property Title *',ls_label_type:'Property Type *',ls_label_category:'For Rent / Sale *',ls_label_source:'Listing Source *',
+    ls_source_owner:'Owner',ls_source_agent:'Property Agent',
+    opt_select_source:'Select Source',
+    ph_prop_title:'e.g. Grade A Office in Central',
+    ls_label_district:'District *',ls_label_area:'Area *',ls_label_address:'Detailed Address *',ls_label_building:'Building Name',
+    ls_label_floor:'Floor',ls_label_direction:'Facing Direction',ls_label_gross_area:'Gross Area (sq ft) *',ls_label_net_area:'Net Area (sq ft)',
+    ph_area_example:'e.g. Central, Causeway Bay',ph_street_addr:'Street address',ph_building:'Building / Mall name',ph_floor:'e.g. 25/F, Ground',
+    dir_east:'East',dir_south:'South',dir_west:'West',dir_north:'North',dir_se:'SE',dir_sw:'SW',dir_ne:'NE',dir_nw:'NW',
+    ls_label_map_pin:'Pin location on map',
+    ls_label_rent:'Monthly Rent (HK$) *',ls_label_mgmt_fee:'Management Fee (HK$/mo)',ls_label_aircon_fee:'AC Fee (HK$/mo)',
+    ls_label_renovation:'Renovation Status',ls_label_furnishing:'Furnishing',
+    ren_full:'Fully Renovated',ren_partial:'Partially Renovated',ren_basic:'Basic',ren_bare:'Bare Shell',ren_shell:'Shell',
+    furn_full:'Fully Furnished',furn_partial:'Partially Furnished',furn_empty:'Unfurnished',furn_shell:'Shell',
+    ls_label_facilities:'Facilities',ls_label_desc:'Property Description',ls_label_agent_info:'Agent / Contact Info',
+    ph_desc:'Describe property features, surroundings, transport links...',
+    ls_label_contact_name:'Contact Name',ls_label_contact_phone:'Contact Phone',ls_label_contact_email:'Contact Email',ls_label_agent_company:'Agency',
+    fac_24h_security:'24h Security',fac_central_ac:'Central AC',fac_high_speed_lift:'High-speed Lift',fac_parking:'Parking',
+    fac_meeting_room:'Meeting Room',fac_reception:'Reception',fac_goods_lift:'Goods Lift',fac_loading_area:'Loading Area',
+    fac_restaurant_license:'Restaurant License',fac_network:'Internet',fac_pantry:'Pantry',fac_private_toilet:'Private Toilet',
+    for_rent:'For Rent',for_sale:'For Sale',
+    upload_click:'Click to upload images',upload_hint:'JPG, PNG formats, max 10 images',
+    detail_breadcrumb:'Property Detail',
+    admin_page_title:'Admin Dashboard',admin_page_desc:'HK Rental Hub Management System',
+    admin_pending:'Pending Review',admin_users:'Registered Users',admin_queries:'Monthly Queries',
+    admin_manage_props:'Manage Listings',admin_manage_desc:'View, edit, review property info',
+    admin_publish:'Publish Listing',admin_publish_desc:'Publish new commercial property',
+    admin_settings:'System Settings',admin_settings_desc:'Configure site parameters',
+    admin_recent_props:'Recent Listings',
+    th_prop_name:'Property',th_status:'Status',th_views:'Views',th_published:'Published',th_action:'Action',
+    toast_login_success:'Login successful! Welcome back, ',toast_register_success:'Registration successful! Welcome, ',
+    toast_logout:'Logged out',toast_need_fields:'Please fill all required fields',
+    toast_need_email_pw:'Please enter email and password',toast_need_phone_code:'Please enter mobile number and verification code',
+    toast_sms_sent:'Verification code sent to mobile',toast_sms_sent_to:'Code sent to ',
+    toast_listing_success:'🎉 Listing submitted! It will be live after review.',
+    toast_upload:'Image upload will be enabled in the production version',
+    toast_inquiry_sent:'Inquiry sent! Agent will respond within 24 hours.',
+    toast_favorited:'Added to favorites!',toast_location_marked:'Location pinned: ',
+    toast_action_view:'View',
+    prop_type_office:'Office',prop_type_shop:'Shop',prop_type_warehouse:'Warehouse',prop_type_industrial:'Industrial',prop_type_restaurant:'Restaurant',prop_type_cowork:'Co-work',prop_type_exhibition:'Exhibition',
+    prop_month:'/mo',prop_gross:'Gross:',prop_net:'Net:',prop_days_ago:' days ago',prop_view_detail:'View Detail →',
+    detail_label_gross_area:'Gross Area',detail_label_net_area:'Net Area',detail_label_floor:'Floor',detail_label_renovation:'Renovation',detail_label_mgmt_fee:'Mgmt Fee',detail_label_direction:'Facing',
+    detail_label_sqft:'sq ft',detail_section_desc:'Description',detail_section_facilities:'Facilities',detail_section_location:'Location',
+    detail_agent_info:'Agent Info',detail_agent_company:'Agency',detail_btn_inquiry:'Send Inquiry',detail_btn_favorite:'❤️ Save',detail_label_views:'Views',
+    detail_label_building:'Building: ',detail_label_area:'District: ',detail_label_floor_info:'Floor: ',
+    status_active:'Active',status_pending:'Pending',status_rented:'Rented',
+    status_days_ago:' days ago',
+    map_popup_type:' | ',map_popup_sqft:' sqft',map_popup_detail:'View Detail →',
+    map_popup_location_pin:'Property location pin',
+    // Sub-nav dropdowns
+    sub_home_featured:'🌟 Featured',sub_home_new:'🆕 New Listings',sub_home_popular:'🔥 Popular',sub_home_premium:'💎 Premium',
+    sub_prop_office:'🏢 Office',sub_prop_shop:'🏪 Retail Shop',sub_prop_warehouse:'📦 Warehouse',sub_prop_industrial:'🏭 Industrial',sub_prop_restaurant:'🍽️ Restaurant',sub_prop_cowork:'🤝 Co-working',
+    sub_map_hk_island:'📍 Hong Kong Island',sub_map_kln:'📍 Kowloon',sub_map_nt:'📍 New Territories',sub_map_near_mtr:'🚇 Near MTR',
+    sub_list_new:'📝 New Listing',sub_list_manage:'📋 Manage Listings',sub_list_package:'💰 Pricing Plans',sub_list_agent:'👨‍💼 Agent Signup',
+    sub_admin_overview:'📊 Overview',sub_admin_users:'👥 User Management',sub_admin_review:'✅ Listing Review',sub_admin_settings:'⚙️ Settings',
+    // Sub-page content titles & descriptions
+    sub_featured_title:'Featured Listings',sub_featured_desc:'Handpicked high-quality commercial properties, curated for the best rental options',
+    sub_new_title:'New Listings',sub_new_desc:'Just published commercial rentals, browse the latest properties first',
+    sub_popular_title:'Popular Rentals',sub_popular_desc:'Most viewed commercial properties, top rentals by traffic',
+    sub_premium_title:'Premium Properties',sub_premium_desc:'HK$30,000+ top-tier commercial properties, Grade A offices and prime retail',
+    sub_office_title:'Office Rentals',sub_office_desc:'Office rentals across HK, from Grade A to creative studios',
+    sub_shop_title:'Retail Shop Rentals',sub_shop_desc:'Prime street-front shops for all retail businesses',
+    sub_warehouse_title:'Warehouse Rentals',sub_warehouse_desc:'Large storage units for logistics and warehousing needs',
+    sub_industrial_title:'Industrial Rentals',sub_industrial_desc:'High-value industrial units for storage and light industry',
+    sub_restaurant_title:'Restaurant Rentals',sub_restaurant_desc:'Licensed restaurant spaces for all F&B businesses',
+    sub_cowork_title:'Co-working Rentals',sub_cowork_desc:'Flexible co-working spaces for startups and freelancers',
+    sub_listing_mgmt_title:'Listing Management',sub_listing_mgmt_desc:'Manage all your published rentals, view traffic and status',
+    lm_edit:'Edit',lm_pause:'Pause',lm_delete:'Delete',lm_activate:'Activate',lm_views_text:'Views',lm_status_text:'Status',
+    sub_pricing_title:'Pricing Plans',sub_pricing_desc:'Choose the plan that fits your needs, boost listing visibility',
+    pricing_free:'Free',pricing_basic:'Basic',pricing_pro:'Professional',
+    pricing_free_price:'HK$0',pricing_basic_price:'HK$299',pricing_pro_price:'HK$899',
+    pricing_per_month:'/mo',pricing_most_popular:'Most Popular',
+    pf_1_listing:'1 Listing',pf_5_listing:'5 Listings',pf_20_listing:'20 Listings',
+    pf_basic_search:'Basic Search',pf_priority_listing:'Priority Listing',pf_featured:'Featured Placement',
+    pf_agent_profile:'Agent Profile',pf_analytics:'Traffic Analytics',pf_priority_support:'Priority Support',
+    pf_dedicated_manager:'Dedicated Manager',pf_mtr_ad:'MTR Station Ads',
+    pf_choose:'Choose Plan',
+    sub_agent_signup_title:'Agent Signup',sub_agent_signup_desc:'Become a certified property agent, get more client leads',
+    ag_benefit1_title:'More Clients',ag_benefit1_desc:'50,000+ monthly views, auto-match tenant needs',
+    ag_benefit1_list:['Free client matching','Targeted lead推送','District priority exposure'],
+    ag_benefit2_title:'Brand Building',ag_benefit2_desc:'Professional agent profile, showcase deals and reviews',
+    ag_benefit2_list:['Professional profile page','Client review system','Deal history showcase'],
+    ag_benefit3_title:'Efficient Tools',ag_benefit3_desc:'One-click listing publish, smart inquiry management',
+    ag_benefit3_list:['Batch listing publish','Auto inquiry分配','Follow-up reminders'],
+    ag_benefit4_title:'Data Insights',ag_benefit4_desc:'Market trend analysis, district rental data',
+    ag_benefit4_list:['Rent trend analysis','District data reports','Competitor monitoring'],
+    ag_signup_btn:'Apply Now',ag_already_agent:'Already an agent?',ag_login_here:'Login to manage',
+    sub_admin_overview_title:'System Overview',sub_admin_overview_desc:'Platform operation data at a glance',
+    ov_total_listings:'Total Listings',ov_active_listings:'Active Listings',ov_new_this_month:'New This Month',ov_total_users:'Total Users',
+    ov_agents:'Registered Agents',ov_monthly_views:'Monthly Views',ov_deals_completed:'Deals Completed',ov_pending_review:'Pending Review',
+    ov_trend_up:'↑ 12%',ov_trend_stable:'Flat',ov_recent_activity:'Recent Activity',
+    ov_new_user:'New user registration',ov_new_listing:'New listing published',ov_deal_completed:'Deal completed',
+    sub_admin_users_title:'User Management',sub_admin_users_desc:'Manage all users, review agent applications',
+    th_user_name:'Name',th_user_email:'Email',th_user_role:'Role',th_user_status:'Status',
+    th_user_joined:'Joined',th_user_actions:'Actions',
+    role_user:'User',role_agent:'Agent',role_admin:'Admin',
+    status_online:'Online',status_offline:'Offline',
+    btn_approve:'Approve',btn_suspend:'Suspend',btn_view:'View',
+  }
+};
+
+let currentLang='zh';
+
+function applyI18N(){
+  // Update text content
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(i18n[currentLang][key])el.textContent=i18n[currentLang][key];
+  });
+  // Update placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key=el.getAttribute('data-i18n-placeholder');
+    if(i18n[currentLang][key])el.placeholder=i18n[currentLang][key];
+  });
+  // Update select options
+  document.querySelectorAll('select option[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(i18n[currentLang][key])el.textContent=i18n[currentLang][key];
+  });
+  // Update lang toggle label — show the language you can switch TO
+  document.getElementById('lang-label').textContent=currentLang==='zh'?'EN':'繁體';
+  // Rebuild dynamic content
+  rebuildDynamicContent();
+}
+
+function toggleLanguage(){
+  currentLang=currentLang==='zh'?'en':'zh';
+  applyI18N();
+}
+
+// ===== DATA =====
+const properties=[
+  {id:1,title_zh:'中環甲級寫字樓',title_en:'Grade A Office in Central',type_key:'prop_type_office',rent:25000,grossArea:800,netArea:600,district_zh:'中環',district_en:'Central',area_zh:'核心商業區',area_en:'Core Business District',daysAgo:2,floor_zh:'25樓',floor_en:'25/F',building_zh:'國際金融中心',building_en:'IFC',renovation_zh:'精裝修',renovation_en:'Fully Renovated',direction_zh:'東南',direction_en:'SE',mgmtFee:2000,desc_zh:'位於中環核心商業區的甲級寫字樓，交通便捷，毗鄰港鐵站。單位裝修精美，配備完善的基礎設施，適合各類企業入駐。大厦設有24小時保安、中央冷氣系統及高速升降機。',desc_en:'Grade A office in Central core business district, convenient transport adjacent to MTR. Well-renovated unit with complete infrastructure, suitable for all types of businesses. 24h security, central AC, high-speed lifts.',facilities_zh:['24小時保安','中央冷氣','高速升降機','停車場','會議室','接待處'],facilities_en:['24h Security','Central AC','High-speed Lift','Parking','Meeting Room','Reception'],agent_zh:'陳大文',agent_en:'Chan Tai Man',agentPhone:'+852 1234 5678',agentEmail:'agent@abc.com',agentCo_zh:'ABC地產代理',agentCo_en:'ABC Property Agency',views:256,status:'ACTIVE',lat:22.2855,lng:114.1577},
+  {id:2,title_zh:'銅鑼灣臨街商舖',title_en:'Street-front Shop in Causeway Bay',type_key:'prop_type_shop',rent:35000,grossArea:600,netArea:450,district_zh:'銅鑼灣',district_en:'Causeway Bay',area_zh:'軒尼詩道',area_en:'Hennessy Road',daysAgo:1,floor_zh:'地面',floor_en:'Ground',building_zh:'時代廣場',building_en:'Times Square',renovation_zh:'精裝修',renovation_en:'Fully Renovated',direction_zh:'南',direction_en:'South',mgmtFee:3000,desc_zh:'銅鑼灣核心購物區臨街店舖，人流旺盛，適合各類零售業務。',desc_en:'Street-front shop in Causeway Bay core shopping area, high foot traffic, suitable for all retail businesses.',facilities_zh:['24小時保安','中央冷氣','貨運升降機','招牌位'],facilities_en:['24h Security','Central AC','Goods Lift','Signage Space'],agent_zh:'陳大文',agent_en:'Chan Tai Man',agentPhone:'+852 1234 5678',agentEmail:'agent@abc.com',agentCo_zh:'ABC地產代理',agentCo_en:'ABC Property Agency',views:189,status:'ACTIVE',lat:22.2783,lng:114.1847},
+  {id:3,title_zh:'觀塘工業大厦單位',title_en:'Industrial Unit in Kwun Tong',type_key:'prop_type_industrial',rent:15000,grossArea:1200,netArea:900,district_zh:'觀塘',district_en:'Kwun Tong',area_zh:'觀塘道',area_en:'Kwun Tong Road',daysAgo:3,floor_zh:'12樓',floor_en:'12/F',building_zh:'宏利廣場',building_en:'Manulife Plaza',renovation_zh:'基本裝修',renovation_en:'Basic',direction_zh:'西北',direction_en:'NW',mgmtFee:1500,desc_zh:'觀塘工業區性價比極高的工業大厦單位，適合倉儲和輕工業用途。',desc_en:'High value industrial unit in Kwun Tong, suitable for warehousing and light industrial use.',facilities_zh:['24小時保安','貨運升降機','裝卸區'],facilities_en:['24h Security','Goods Lift','Loading Area'],agent_zh:'陳大文',agent_en:'Chan Tai Man',agentPhone:'+852 1234 5678',agentEmail:'agent@abc.com',agentCo_zh:'ABC地產代理',agentCo_en:'ABC Property Agency',views:98,status:'ACTIVE',lat:22.3133,lng:114.2242},
+  {id:4,title_zh:'尖沙咀海景辦公室',title_en:'Seaview Office in Tsim Sha Tsui',type_key:'prop_type_office',rent:42000,grossArea:1000,netArea:750,district_zh:'尖沙咀',district_en:'Tsim Sha Tsui',area_zh:'廣東道',area_en:'Canton Road',daysAgo:1,floor_zh:'30樓',floor_en:'30/F',building_zh:'海港城',building_en:'Harbour City',renovation_zh:'全裝修',renovation_en:'Fully Renovated',direction_zh:'東南',direction_en:'SE',mgmtFee:3500,desc_zh:'尖沙咀甲級寫字樓，坐擁維港海景，交通便捷。',desc_en:'Grade A office in TST with Victoria Harbour seaview, convenient transport.',facilities_zh:['24小時保安','中央冷氣','高速升降機','停車場','會議室','海景'],facilities_en:['24h Security','Central AC','High-speed Lift','Parking','Meeting Room','Seaview'],agent_zh:'李小姐',agent_en:'Ms. Lee',agentPhone:'+852 9876 5432',agentEmail:'lee@xyz.com',agentCo_zh:'XYZ地產',agentCo_en:'XYZ Property',views:342,status:'ACTIVE',lat:22.2989,lng:114.1722},
+  {id:5,title_zh:'旺角餐廳舖位',title_en:'Restaurant Space in Mong Kok',type_key:'prop_type_restaurant',rent:28000,grossArea:500,netArea:400,district_zh:'旺角',district_en:'Mong Kok',area_zh:'彌敦道',area_en:'Nathan Road',daysAgo:5,floor_zh:'地面',floor_en:'Ground',building_zh:'旺角中心',building_en:'Mong Kok Centre',renovation_zh:'精裝修',renovation_en:'Fully Renovated',direction_zh:'南',direction_en:'South',mgmtFee:2500,desc_zh:'旺角核心地段餐廳舖位，已領食肆牌，適合各類餐飲業務。',desc_en:'Restaurant space in Mong Kok core area, with restaurant license, suitable for all F&B businesses.',facilities_zh:['24小時保安','食肆牌','煤氣','來去水'],facilities_en:['24h Security','Restaurant License','Gas','Water Supply'],agent_zh:'李小姐',agent_en:'Ms. Lee',agentPhone:'+852 9876 5432',agentEmail:'lee@xyz.com',agentCo_zh:'XYZ地產',agentCo_en:'XYZ Property',views:520,status:'RENTED',lat:22.3193,lng:114.1694},
+  {id:6,title_zh:'荃灣共享辦公空間',title_en:'Co-working Space in Tsuen Wan',type_key:'prop_type_cowork',rent:8000,grossArea:200,netArea:150,district_zh:'荃灣',district_en:'Tsuen Wan',area_zh:'青山公路',area_en:'Castle Peak Road',daysAgo:4,floor_zh:'8樓',floor_en:'8/F',building_zh:'荃灣廣場',building_en:'Tsuen Wan Plaza',renovation_zh:'全裝修',renovation_en:'Fully Renovated',direction_zh:'東',direction_en:'East',mgmtFee:800,desc_zh:'荃灣共享辦公空間，靈活租期，適合初創企業。',desc_en:'Co-working space in Tsuen Wan, flexible lease terms, suitable for startups.',facilities_zh:['24小時保安','中央冷氣','會議室','茶水間','網絡'],facilities_en:['24h Security','Central AC','Meeting Room','Pantry','Internet'],agent_zh:'陳大文',agent_en:'Chan Tai Man',agentPhone:'+852 1234 5678',agentEmail:'agent@abc.com',agentCo_zh:'ABC地產代理',agentCo_en:'ABC Property Agency',views:156,status:'ACTIVE',lat:22.3709,lng:114.1127},
+  {id:7,title_zh:'上環特色工作室',title_en:'Creative Studio in Sheung Wan',type_key:'prop_type_office',rent:18000,grossArea:500,netArea:400,district_zh:'上環',district_en:'Sheung Wan',area_zh:'荷李活道',area_en:'Hollywood Road',daysAgo:2,floor_zh:'5樓',floor_en:'5/F',building_zh:'上環中心',building_en:'Sheung Wan Centre',renovation_zh:'特色裝修',renovation_en:'Creative Renovation',direction_zh:'西',direction_en:'West',mgmtFee:1800,desc_zh:'上環荷李活道特色工作室，適合創意產業。',desc_en:'Creative studio on Hollywood Road, Sheung Wan, suitable for creative industries.',facilities_zh:['24小時保安','中央冷氣','特色裝修'],facilities_en:['24h Security','Central AC','Creative Fit-out'],agent_zh:'王生',agent_en:'Mr. Wong',agentPhone:'+852 5555 6666',agentEmail:'wong@def.com',agentCo_zh:'DEF物業',agentCo_en:'DEF Property',views:201,status:'ACTIVE',lat:22.2871,lng:114.1502},
+  {id:8,title_zh:'葵涌倉儲單位',title_en:'Warehouse Unit in Kwai Chung',type_key:'prop_type_warehouse',rent:12000,grossArea:2000,netArea:1800,district_zh:'葵涌',district_en:'Kwai Chung',area_zh:'葵昌路',area_en:'Kwai Chung Road',daysAgo:7,floor_zh:'3樓',floor_en:'3/F',building_zh:'葵涌物流中心',building_en:'Kwai Chung Logistics Centre',renovation_zh:'毛坯',renovation_en:'Bare Shell',direction_zh:'北',direction_en:'North',mgmtFee:1200,desc_zh:'葵涌大型倉儲單位，層高高，適合物流倉儲。',desc_en:'Large warehouse unit in Kwai Chung, high ceiling, suitable for logistics and storage.',facilities_zh:['24小時保安','貨運升降機','裝卸台','叉車通道'],facilities_en:['24h Security','Goods Lift','Loading Bay','Forklift Access'],agent_zh:'王生',agent_en:'Mr. Wong',agentPhone:'+852 5555 6666',agentEmail:'wong@def.com',agentCo_zh:'DEF物業',agentCo_en:'DEF Property',views:87,status:'PENDING',lat:22.3577,lng:114.1287},
+  {id:9,title_zh:'灣仔展覽廳',title_en:'Exhibition Hall in Wan Chai',type_key:'prop_type_exhibition',rent:30000,grossArea:800,netArea:650,district_zh:'灣仔',district_en:'Wan Chai',area_zh:'菲林明道',area_en:'Fleming Road',daysAgo:1,floor_zh:'2樓',floor_en:'2/F',building_zh:'灣仔會展中心',building_en:'Wan Chai Exhibition Centre',renovation_zh:'精裝修',renovation_en:'Fully Renovated',direction_zh:'東南',direction_en:'SE',mgmtFee:2800,desc_zh:'灣仔會展中心旁展覽廳，適合展覽展示及活動。',desc_en:'Exhibition hall next to HKCEC, suitable for exhibitions and events.',facilities_zh:['24小時保安','中央冷氣','高速升降機','展示燈光','音響系統'],facilities_en:['24h Security','Central AC','High-speed Lift','Exhibition Lighting','Sound System'],agent_zh:'李小姐',agent_en:'Ms. Lee',agentPhone:'+852 9876 5432',agentEmail:'lee@xyz.com',agentCo_zh:'XYZ地產',agentCo_en:'XYZ Property',views:312,status:'ACTIVE',lat:22.2793,lng:114.1747},
+];
+
+function pTitle(p){return currentLang==='zh'?p.title_zh:p.title_en}
+function pType(p){return i18n[currentLang][p.type_key]}
+function pDistrict(p){return currentLang==='zh'?p.district_zh:p.district_en}
+function pArea(p){return currentLang==='zh'?p.area_zh:p.area_en}
+function pFloor(p){return currentLang==='zh'?p.floor_zh:p.floor_en}
+function pBuilding(p){return currentLang==='zh'?p.building_zh:p.building_en}
+function pRenovation(p){return currentLang==='zh'?p.renovation_zh:p.renovation_en}
+function pDirection(p){return currentLang==='zh'?p.direction_zh:p.direction_en}
+function pDesc(p){return currentLang==='zh'?p.desc_zh:p.desc_en}
+function pFacilities(p){return currentLang==='zh'?p.facilities_zh:p.facilities_en}
+function pAgent(p){return currentLang==='zh'?p.agent_zh:p.agent_en}
+function pAgentCo(p){return currentLang==='zh'?p.agentCo_zh:p.agentCo_en}
+function pStatusText(s){const map={ACTIVE:i18n[currentLang].status_active,PENDING:i18n[currentLang].status_pending,RENTED:i18n[currentLang].status_rented};return map[s]||s}
+
+// ===== HK DISTRICT DATA =====
+const hkDistricts=[
+  {region_zh:'香港島',region_en:'Hong Kong Island',districts:[
+    {zh:'中環',en:'Central'},  {zh:'上環',en:'Sheung Wan'},  {zh:'金鐘',en:'Admiralty'},
+    {zh:'灣仔',en:'Wan Chai'},  {zh:'銅鑼灣',en:'Causeway Bay'},  {zh:'大坑',en:'Tai Hang'},
+    {zh:'跑馬地',en:'Happy Valley'},  {zh:'北角',en:'North Point'},  {zh:'鰂魚涌',en:'Quarry Bay'},
+    {zh:'太古',en:'Taikoo'},  {zh:'柴灣',en:'Chai Wan'},  {zh:'筲箕灣',en:'Shau Kei Wan'},
+    {zh:'香港仔',en:'Aberdeen'},  {zh:'黃竹坑',en:'Wong Chuk Hang'},  {zh:'薄扶林',en:'Pokfulam'},
+    {zh:'半山區',en:'Mid-Levels'},  {zh:'山頂',en:'The Peak'},
+  ]},
+  {region_zh:'九龍',region_en:'Kowloon',districts:[
+    {zh:'尖沙咀',en:'Tsim Sha Tsui'},  {zh:'油麻地',en:'Yau Ma Tei'},  {zh:'旺角',en:'Mong Kok'},
+    {zh:'大角咀',en:'Tai Kok Tsui'},  {zh:'深水埗',en:'Sham Shui Po'},  {zh:'長沙灣',en:'Cheung Sha Wan'},
+    {zh:'荔枝角',en:'Lai Chi Kok'},  {zh:'石硤尾',en:'Shek Kip Mei'},  {zh:'九龍城',en:'Kowloon City'},
+    {zh:'紅磡',en:'Hung Hom'},  {zh:'土瓜灣',en:'To Kwa Wan'},  {zh:'何文田',en:'Ho Man Tin'},
+    {zh:'樂富',en:'Lok Fu'},  {zh:'黃大仙',en:'Wong Tai Sin'},  {zh:'慈雲山',en:'Tsz Wan Shan'},
+    {zh:'鑽石山',en:'Diamond Hill'},  {zh:'彩虹',en:'Choi Hung'},  {zh:'觀塘',en:'Kwun Tong'},
+    {zh:'牛頭角',en:'Ngau Tau Kok'},  {zh:'九龍灣',en:'Kowloon Bay'},  {zh:'藍田',en:'Lam Tin'},
+    {zh:'彩虹邨',en:'Choi Hung Estate'},
+  ]},
+  {region_zh:'新界東',region_en:'NT East',districts:[
+    {zh:'沙田',en:'Sha Tin'},  {zh:'大圍',en:'Tai Wai'},  {zh:'馬鞍山',en:'Ma On Shan'},
+    {zh:'大埔',en:'Tai Po'},  {zh:'上水',en:'Sheung Shui'},  {zh:'粉嶺',en:'Fanling'},
+    {zh:'西貢',en:'Sai Kung'},  {zh:'將軍澳',en:'Tseung Kwan O'},
+  ]},
+  {region_zh:'新界西',region_en:'NT West',districts:[
+    {zh:'荃灣',en:'Tsuen Wan'},  {zh:'葵涌',en:'Kwai Chung'},  {zh:'青衣',en:'Tsing Yi'},
+    {zh:'屯門',en:'Tuen Mun'},  {zh:'兆康',en:'Siu Hong'},  {zh:'元朗',en:'Yuen Long'},
+    {zh:'天水圍',en:'Tin Shui Wai'},
+  ]},
+  {region_zh:'離島',region_en:'Outlying Islands',districts:[
+    {zh:'東涌',en:'Tung Chung'},  {zh:'長洲',en:'Cheung Chau'},  {zh:'坪洲',en:'Peng Chau'},
+    {zh:'南丫島',en:'Lamma Island'},  {zh:'大澳',en:'Tai O'},  {zh:'愉景灣',en:'Discovery Bay'},
+  ]},
+];
+
+// Populate district select dropdowns with optgroup
+function populateDistrictSelect(selectId,includeAllOption=true){
+  const sel=document.getElementById(selectId);
+  if(!sel)return;
+  sel.innerHTML='';
+  if(includeAllOption){
+    const allOpt=document.createElement('option');
+    allOpt.value='';
+    allOpt.textContent=i18n[currentLang].opt_all_district||'所有區域';
+    sel.appendChild(allOpt);
+  }
+  hkDistricts.forEach(region=>{
+    const group=document.createElement('optgroup');
+    group.label=currentLang==='zh'?region.region_zh:region.region_en;
+    region.districts.forEach(d=>{
+      const opt=document.createElement('option');
+      opt.value=currentLang==='zh'?d.zh:d.en;
+      opt.textContent=currentLang==='zh'?d.zh:d.en;
+      group.appendChild(opt);
+    });
+    sel.appendChild(group);
+  });
+}
+
+// Populate listing form district dropdown (region level only)
+function populateLsDistrictSelect(){
+  const sel=document.getElementById('ls-district');
+  if(!sel)return;
+  sel.innerHTML='';
+  const placeholder=document.createElement('option');
+  placeholder.value='';
+  placeholder.textContent=i18n[currentLang].opt_select_district||'選擇區域';
+  sel.appendChild(placeholder);
+  hkDistricts.forEach(region=>{
+    const opt=document.createElement('option');
+    opt.value=currentLang==='zh'?region.region_zh:region.region_en;
+    opt.textContent=currentLang==='zh'?region.region_zh:region.region_en;
+    sel.appendChild(opt);
+  });
+}
+
+// When listing district changes, populate area sub-dropdown
+function updateLsAreaOptions(){
+  const districtSel=document.getElementById('ls-district');
+  const areaSel=document.getElementById('ls-area');
+  if(!districtSel||!areaSel)return;
+  const selected=districtSel.value;
+  areaSel.innerHTML='';
+  const placeholder=document.createElement('option');
+  placeholder.value='';
+  placeholder.textContent=i18n[currentLang].opt_select_area||'選擇地區';
+  areaSel.appendChild(placeholder);
+  const region=hkDistricts.find(r=>(currentLang==='zh'?r.region_zh:r.region_en)===selected);
+  if(region){
+    region.districts.forEach(d=>{
+      const opt=document.createElement('option');
+      opt.value=currentLang==='zh'?d.zh:d.en;
+      opt.textContent=currentLang==='zh'?d.zh:d.en;
+      areaSel.appendChild(opt);
+    });
+  }
+}
+
+let currentUser=null;
+let currentFilteredList=properties;
+let mapInstance=null;
+let detailMapInstance=null;
+let listingMapInstance=null;
+let markers=[];
+
+function fmt(n){return n.toLocaleString()}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+const T=i18n[currentLang]; // convenience shorthand updated dynamically
+
+// ===== AUTH =====
+function openAuthModal(){document.getElementById('auth-modal').classList.add('active');switchAuthTab('login')}
+function closeAuthModal(){document.getElementById('auth-modal').classList.remove('active')}
+function switchAuthTab(tab){
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('auth-login-form').style.display=tab==='login'?'block':'none';
+  document.getElementById('auth-register-form').style.display=tab==='register'?'block':'none';
+  const brand=i18n[currentLang].brand;
+  document.getElementById('auth-title').textContent=tab==='login'?i18n[currentLang].btn_login+' '+brand:i18n[currentLang].tab_register+' '+brand;
+  if(tab==='login')switchLoginMethod('email');
+}
+
+function switchLoginMethod(method){
+  document.querySelectorAll('.login-method-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('lm-'+method).classList.add('active');
+  document.getElementById('login-email-form').style.display=method==='email'?'block':'none';
+  document.getElementById('login-mobile-form').style.display=method==='mobile'?'block':'none';
+}
+
+function selectRole(el,role){document.querySelectorAll('#role-select .checkbox-item').forEach(i=>{i.classList.remove('checked');i.querySelector('input').checked=false});el.classList.add('checked');el.querySelector('input').checked=true}
+
+let smsTimer=null;
+let smsCountdown=0;
+function sendSMSCode(context){
+  if(smsCountdown>0)return;
+  const phone=context==='login'?document.getElementById('login-phone').value:document.getElementById('reg-phone').value;
+  if(!phone){showToast(i18n[currentLang].toast_need_fields);return}
+  showToast(i18n[currentLang].toast_sms_sent_to+phone);
+  smsCountdown=60;
+  const btn=document.getElementById(context==='login'?'login-sms-btn':null);
+  function updateBtn(){
+    if(btn){
+      btn.textContent=smsCountdown+'s';
+      btn.classList.add('disabled');
+    }
+    if(smsCountdown<=0){
+      if(btn){btn.textContent=i18n[currentLang].btn_send_code;btn.classList.remove('disabled')}
+      clearInterval(smsTimer);smsTimer=null;
+    }else{smsCountdown--}
+  }
+  smsTimer=setInterval(updateBtn,1000);
+  updateBtn();
+}
+
+function doLogin(){
+  const email=document.getElementById('login-email').value;
+  const pw=document.getElementById('login-password').value;
+  if(!email||!pw){showToast(i18n[currentLang].toast_need_email_pw);return}
+  currentUser={name:email.split('@')[0],email:email,role:'USER'};
+  document.getElementById('user-display-name').textContent=currentUser.name;
+  document.getElementById('user-avatar-btn').textContent=currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('header-logged-out').style.display='none';
+  document.getElementById('header-logged-in').style.display='flex';
+  closeAuthModal();showToast(i18n[currentLang].toast_login_success+currentUser.name);
+}
+
+function doMobileLogin(){
+  const phone=document.getElementById('login-phone').value;
+  const code=document.getElementById('login-sms-code').value;
+  if(!phone||!code){showToast(i18n[currentLang].toast_need_phone_code);return}
+  currentUser={name:phone.replace(/\D/g,'').slice(-4),phone:phone,role:'USER'};
+  document.getElementById('user-display-name').textContent=currentUser.name;
+  document.getElementById('user-avatar-btn').textContent=currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('header-logged-out').style.display='none';
+  document.getElementById('header-logged-in').style.display='flex';
+  closeAuthModal();showToast(i18n[currentLang].toast_login_success+currentUser.name);
+}
+
+function doRegister(){
+  const name=document.getElementById('reg-name').value;
+  const email=document.getElementById('reg-email').value;
+  const pw=document.getElementById('reg-password').value;
+  if(!name||!email||!pw){showToast(i18n[currentLang].toast_need_fields);return}
+  currentUser={name:name,email:email,role:'USER'};
+  document.getElementById('user-display-name').textContent=currentUser.name;
+  document.getElementById('user-avatar-btn').textContent=currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('header-logged-out').style.display='none';
+  document.getElementById('header-logged-in').style.display='flex';
+  closeAuthModal();showToast(i18n[currentLang].toast_register_success+currentUser.name);
+}
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('header-logged-out').style.display='block';
+  document.getElementById('header-logged-in').style.display='none';
+  document.getElementById('user-menu').style.display='none';
+  showToast(i18n[currentLang].toast_logout);
+}
+
+function toggleUserMenu(){const m=document.getElementById('user-menu');m.style.display=m.style.display==='none'?'block':'none'}
+document.addEventListener('click',e=>{if(!e.target.closest('#user-menu')&&!e.target.closest('#user-avatar-btn'))document.getElementById('user-menu').style.display='none'});
+
+// ===== NAV =====
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(a=>{a.classList.remove('active');a.style.color='var(--x-gray)'});
+  const n=document.getElementById('nav-'+page);if(n){n.classList.add('active');n.style.color='var(--x-blue)'}
+  window.scrollTo(0,0);
+  if(page==='map')initFullMap();
+  if(page==='listing')initListingMap();
+}
+
+// ===== SUB-PAGE NAVIGATION =====
+function showSubPage(subId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+subId).classList.add('active');
+  // Clear all nav active states
+  document.querySelectorAll('.nav-item').forEach(a=>{a.classList.remove('active');a.style.color='var(--x-gray)'});
+  // Highlight parent nav item based on sub-page category
+  const parentNavMap={
+    'sub-featured':'nav-home','sub-new':'nav-home','sub-popular':'nav-home','sub-premium':'nav-home',
+    'sub-office':'nav-properties','sub-shop':'nav-properties','sub-warehouse':'nav-properties','sub-industrial':'nav-properties','sub-restaurant':'nav-properties','sub-cowork':'nav-properties',
+    'sub-listing-mgmt':'nav-listing','sub-pricing':'nav-listing','sub-agent-signup':'nav-listing',
+    'sub-admin-overview':'nav-admin','sub-admin-users':'nav-admin',
+  };
+  const parentNav=parentNavMap[subId];
+  if(parentNav){const n=document.getElementById(parentNav);if(n){n.classList.add('active');n.style.color='var(--x-blue)'}}
+  window.scrollTo(0,0);
+  buildSubPageContent(subId);
+}
+
+function buildSubPageContent(subId){
+  const L=i18n[currentLang];
+  // Property-type sub-pages: filter and show matching properties
+  const typeFilterMap={
+    'sub-office':'prop_type_office','sub-shop':'prop_type_shop','sub-warehouse':'prop_type_warehouse',
+    'sub-industrial':'prop_type_industrial','sub-restaurant':'prop_type_restaurant','sub-cowork':'prop_type_cowork',
+  };
+  // Home-category sub-pages
+  const homeFilterMap={
+    'sub-featured':properties.slice(0,6),
+    'sub-new':properties.slice().sort((a,b)=>a.daysAgo-b.daysAgo),
+    'sub-popular':properties.slice().sort((a,b)=>b.views-a.views),
+    'sub-premium':properties.filter(p=>p.rent>=30000),
+  };
+
+  if(typeFilterMap[subId]){
+    const filtered=properties.filter(p=>p.type_key===typeFilterMap[subId]);
+    const gridId=subId+'-grid';
+    const grid=document.getElementById(gridId);
+    if(grid)grid.innerHTML=filtered.length>0?filtered.map(propertyCardHTML).join(''):'<p style="color:var(--x-gray);text-align:center;padding:48px;">'+(currentLang==='zh'?'暫無此類型的盤源':'No listings of this type yet')+'</p>';
+  }else if(homeFilterMap[subId]){
+    const filtered=homeFilterMap[subId];
+    const gridId=subId+'-grid';
+    const grid=document.getElementById(gridId);
+    if(grid)grid.innerHTML=filtered.map(propertyCardHTML).join('');
+  }
+
+  // Listing Management sub-page
+  if(subId==='sub-listing-mgmt'){
+    const el=document.getElementById('sub-listing-mgmt-content');
+    if(el)el.innerHTML=properties.map(p=>{
+      return`<div class="listing-manage-card">
+        <div class="lm-header"><h3>${pTitle(p)}</h3>
+          <span class="status-badge ${p.status==='ACTIVE'?'status-active':p.status==='PENDING'?'status-pending':'status-rented'}">${pStatusText(p.status)}</span>
+        </div>
+        <div class="lm-meta"><span>HK$${fmt(p.rent)}${L.prop_month}</span><span>${pDistrict(p)}</span><span>${L.lm_views_text}: ${p.views}</span></div>
+        <div class="lm-actions">
+          <button class="primary">${L.lm_edit}</button>
+          ${p.status==='ACTIVE'?`<button>${L.lm_pause}</button>`:`<button>${L.lm_activate}</button>`}
+          <button>${L.lm_delete}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Pricing Plans sub-page
+  if(subId==='sub-pricing'){
+    const el=document.getElementById('sub-pricing-content');
+    if(el)el.innerHTML=`<div class="pricing-grid">
+      <div class="pricing-card">
+        <h3>${L.pricing_free}</h3>
+        <div class="pricing-price">${L.pricing_free_price}</div>
+        <div class="pricing-period">${L.pricing_per_month}</div>
+        <ul class="pricing-features"><li><strong>${L.pf_1_listing}</strong></li><li>${L.pf_basic_search}</li><li>${L.pf_agent_profile}</li></ul>
+        <button class="btn">${L.pf_choose}</button>
+      </div>
+      <div class="pricing-card featured">
+        <h3>${L.pricing_basic} <small style="color:var(--x-blue);">${L.pricing_most_popular}</small></h3>
+        <div class="pricing-price">${L.pricing_basic_price}</div>
+        <div class="pricing-period">${L.pricing_per_month}</div>
+        <ul class="pricing-features"><li><strong>${L.pf_5_listing}</strong></li><li>${L.pf_priority_listing}</li><li>${L.pf_featured}</li><li>${L.pf_analytics}</li><li>${L.pf_priority_support}</li></ul>
+        <button class="btn">${L.pf_choose}</button>
+      </div>
+      <div class="pricing-card">
+        <h3>${L.pricing_pro}</h3>
+        <div class="pricing-price">${L.pricing_pro_price}</div>
+        <div class="pricing-period">${L.pricing_per_month}</div>
+        <ul class="pricing-features"><li><strong>${L.pf_20_listing}</strong></li><li>${L.pf_priority_listing}</li><li>${L.pf_featured}</li><li>${L.pf_analytics}</li><li>${L.pf_priority_support}</li><li>${L.pf_dedicated_manager}</li><li>${L.pf_mtr_ad}</li></ul>
+        <button class="btn">${L.pf_choose}</button>
+      </div>
+    </div>`;
+  }
+
+  // Agent Signup sub-page
+  if(subId==='sub-agent-signup'){
+    const el=document.getElementById('sub-agent-signup-content');
+    const benefits=[
+      {icon:'🎯',title_key:'ag_benefit1_title',desc_key:'ag_benefit1_desc',list_key:'ag_benefit1_list'},
+      {icon:'⭐',title_key:'ag_benefit2_title',desc_key:'ag_benefit2_desc',list_key:'ag_benefit2_list'},
+      {icon:'⚡',title_key:'ag_benefit3_title',desc_key:'ag_benefit3_desc',list_key:'ag_benefit3_list'},
+      {icon:'📊',title_key:'ag_benefit4_title',desc_key:'ag_benefit4_desc',list_key:'ag_benefit4_list'},
+    ];
+    if(el)el.innerHTML=`<div class="agent-grid">${benefits.map(b=>`<div class="agent-benefit">
+      <h3>${b.icon} ${L[b.title_key]}</h3><p>${L[b.desc_key]}</p>
+      <ul>${L[b.list_key].map(li=>`<li>${li}</li>`).join('')}</ul>
+    </div>`).join('')}</div>
+    <div style="text-align:center;margin-top:32px;">
+      <button class="btn btn-lg" onclick="openAuthModal()">${L.ag_signup_btn}</button>
+      <p style="color:var(--x-gray);margin-top:12px;">${L.ag_already_agent} <a style="color:var(--x-blue);cursor:pointer;" onclick="openAuthModal()">${L.ag_login_here}</a></p>
+    </div>`;
+  }
+
+  // Admin Overview sub-page
+  if(subId==='sub-admin-overview'){
+    const el=document.getElementById('sub-admin-overview-content');
+    if(el)el.innerHTML=`<div class="overview-grid">
+      <div class="overview-card"><h4>${L.ov_total_listings}</h4><div class="big-num">500+</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_active_listings}</h4><div class="big-num">128</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_new_this_month}</h4><div class="big-num">45</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_total_users}</h4><div class="big-num">456</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_agents}</h4><div class="big-num">120</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_monthly_views}</h4><div class="big-num">50K</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_deals_completed}</h4><div class="big-num">89</div><div class="trend">${L.ov_trend_up}</div></div>
+      <div class="overview-card"><h4>${L.ov_pending_review}</h4><div class="big-num">12</div><div class="trend">${L.ov_trend_stable}</div></div>
+    </div>
+    <div style="margin-top:24px;background:var(--x-dark);border:1px solid var(--x-border);border-radius:16px;padding:24px;">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">${L.ov_recent_activity}</h3>
+      <div style="display:flex;gap:16px;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--x-border);"><span style="color:var(--x-green);">✓</span> <span style="color:var(--x-text);">張先生 — ${L.ov_new_user}</span> <span style="color:var(--x-gray);font-size:12px;">2 分鐘前</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--x-border);"><span style="color:var(--x-blue);">📝</span> <span style="color:var(--x-text);">陳大文 — ${L.ov_new_listing}</span> <span style="color:var(--x-gray);font-size:12px;">15 分鐘前</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 0;"><span style="color:#ffc107;">🏆</span> <span style="color:var(--x-text);">中環甲級寫字樓 — ${L.ov_deal_completed}</span> <span style="color:var(--x-gray);font-size:12px;">1 小時前</span></div>
+      </div>
+    </div>`;
+  }
+
+  // Admin Users sub-page
+  if(subId==='sub-admin-users'){
+    const mockUsers=[
+      {name_zh:'陳大文',name_en:'Chan Tai Man',email:'chan@abc.com',role:'AGENT',online:true,joined:'2026-01-15'},
+      {name_zh:'李小姐',name_en:'Ms. Lee',email:'lee@xyz.com',role:'AGENT',online:true,joined:'2026-02-20'},
+      {name_zh:'王生',name_en:'Mr. Wong',email:'wong@def.com',role:'AGENT',online:false,joined:'2026-03-10'},
+      {name_zh:'張小姐',name_en:'Ms. Cheung',email:'cheung@hkg.com',role:'USER',online:true,joined:'2026-04-05'},
+      {name_zh:'劉先生',name_en:'Mr. Lau',email:'lau@property.com',role:'USER',online:false,joined:'2026-05-12'},
+      {name_zh:'趙先生',name_en:'Mr. Chiu',email:'chiu@rental.com',role:'USER',online:false,joined:'2026-06-01'},
+    ];
+    const roleMap={AGENT:L.role_agent,USER:L.role_user,ADMIN:L.role_admin};
+    const el=document.getElementById('sub-admin-users-content');
+    if(el)el.innerHTML=`<table class="user-table"><thead><tr>
+      <th>${L.th_user_name}</th><th>${L.th_user_email}</th><th>${L.th_user_role}</th><th>${L.th_user_status}</th><th>${L.th_user_joined}</th><th>${L.th_user_actions}</th>
+    </tr></thead><tbody>${mockUsers.map(u=>{
+      const uName=currentLang==='zh'?u.name_zh:u.name_en;
+      return`<tr><td style="font-weight:500;">${uName}</td><td style="color:var(--x-gray);">${u.email}</td><td>${roleMap[u.role]}</td>
+        <td><span class="status-dot ${u.online?'online':'offline'}"></span>${u.online?L.status_online:L.status_offline}</td>
+        <td style="color:var(--x-gray);">${u.joined}</td>
+        <td style="display:flex;gap:8px;">
+          <button class="btn-sm btn-outline" style="padding:4px 10px;border-radius:9999px;font-size:12px;cursor:pointer;border:1px solid var(--x-border);background:transparent;color:var(--x-gray);">${L.btn_view}</button>
+          ${u.role==='AGENT'?`<button class="btn-sm" style="padding:4px 10px;border-radius:9999px;font-size:12px;cursor:pointer;background:var(--x-green);color:#fff;border:none;">${L.btn_approve}</button>`:''}
+        </td></tr>`;
+    }).join('')}</tbody></table>`;
+  }
+}
+
+// ===== DYNAMIC CONTENT REBUILD =====
+function rebuildDynamicContent(){
+  rebuildPropertyCards();
+  rebuildAdminTable();
+  // Rebuild district selects on language change
+  populateDistrictSelect('home-search-district');
+  populateDistrictSelect('filter-district');
+  populateLsDistrictSelect();
+  // Reset ls-area dropdown
+  const areaSel=document.getElementById('ls-area');
+  if(areaSel){
+    areaSel.innerHTML='<option value="">'+(i18n[currentLang].opt_select_area||'選擇地區')+'</option>';
+  }
+  // Rebuild map sidebar if on map page
+  if(document.getElementById('page-map').classList.contains('active')){
+    rebuildMapSidebar();
+  }
+  // Rebuild active sub-page content
+  document.querySelectorAll('.page.active').forEach(pg=>{
+    const pgId=pg.id.replace('page-','');
+    if(pgId.startsWith('sub-'))buildSubPageContent(pgId);
+  });
+}
+
+// ===== PROPERTY CARDS =====
+function propertyCardHTML(p){
+  const L=i18n[currentLang];
+  return`<div class="property-card" onclick="showDetail(${p.id})">
+    <div class="property-img">${pType(p)}</div>
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;"><h3>${pTitle(p)}</h3><span class="badge">${pType(p)}</span></div>
+    <div class="property-price">HK$${fmt(p.rent)}<small>${L.prop_month}</small></div>
+    <div class="property-info"><span>${L.prop_gross} ${p.grossArea} 呎</span><span>${L.prop_net} ${p.netArea} 呎</span></div>
+    <p class="property-location">📍 ${pDistrict(p)} • ${pArea(p)}</p>
+    <div class="property-footer"><span style="font-size:14px;color:var(--x-gray);">${p.daysAgo}${L.prop_days_ago}</span><span style="font-size:14px;color:var(--x-blue);">${L.prop_view_detail}</span></div>
+  </div>`;
+}
+
+function rebuildPropertyCards(){
+  document.getElementById('featured-grid').innerHTML=properties.slice(0,6).map(propertyCardHTML).join('');
+  // Only rebuild properties grid if on properties page or if filtered
+  if(currentFilteredList===properties){
+    document.getElementById('properties-grid').innerHTML=properties.map(propertyCardHTML).join('');
+  }else{
+    document.getElementById('properties-grid').innerHTML=currentFilteredList.map(propertyCardHTML).join('');
+  }
+}
+
+// ===== SEARCH / FILTER =====
+function doSearch(){
+  showPage('properties');
+  // Copy home search values to filter bar
+  const homeDist=document.getElementById('home-search-district').value;
+  const homeKw=document.getElementById('home-search-keyword').value;
+  const homeType=document.getElementById('home-search-type').value;
+  const homeRent=document.getElementById('home-search-rent').value;
+  // Set filter values — need to find matching option in filter-district
+  populateDistrictSelect('filter-district');
+  const filterDistSel=document.getElementById('filter-district');
+  // Try to match the district value in the filter select
+  for(const opt of filterDistSel.options){
+    if(opt.value===homeDist){filterDistSel.value=homeDist;break;}
+  }
+  document.getElementById('filter-keyword').value=homeKw;
+  document.getElementById('filter-type').value=homeType;
+  document.getElementById('filter-rent').value=homeRent;
+  doFilter();
+}
+function doFilter(){
+  const kw=document.getElementById('filter-keyword').value.toLowerCase();
+  const type=document.getElementById('filter-type').value;
+  const dist=document.getElementById('filter-district').value;
+  const rent=document.getElementById('filter-rent').value;
+  currentFilteredList=properties.filter(p=>{
+    // Keyword search across title, district, area, building
+    if(kw&&!pTitle(p).toLowerCase().includes(kw)&&!pDistrict(p).toLowerCase().includes(kw)&&!pArea(p).toLowerCase().includes(kw)&&!pBuilding(p).toLowerCase().includes(kw))return false;
+    // Type matching
+    if(type){
+      const localizedType=pType(p);
+      if(localizedType!==type)return false;
+    }
+    // District matching — now uses specific district names
+    if(dist){
+      if(pDistrict(p)!==dist)return false;
+    }
+    if(rent){const[rMin,rMax]=rent.includes('+')?[parseInt(rent),Infinity]:rent.split('-').map(Number);if(p.rent<rMin||p.rent>rMax)return false}
+    return true;
+  });
+  document.getElementById('results-count').textContent=currentFilteredList.length;
+  document.getElementById('properties-grid').innerHTML=currentFilteredList.map(propertyCardHTML).join('');
+}
+function doSort(){
+  const v=document.getElementById('sort-select').value;
+  if(v==='rent-asc')currentFilteredList.sort((a,b)=>a.rent-b.rent);
+  else if(v==='rent-desc')currentFilteredList.sort((a,b)=>b.rent-a.rent);
+  else if(v==='area-desc')currentFilteredList.sort((a,b)=>b.grossArea-a.grossArea);
+  else currentFilteredList.sort((a,b)=>a.daysAgo-b.daysAgo);
+  document.getElementById('properties-grid').innerHTML=currentFilteredList.map(propertyCardHTML).join('');
+}
+
+// ===== DETAIL =====
+function showDetail(id){
+  const p=properties.find(x=>x.id===id);if(!p)return;
+  const L=i18n[currentLang];
+  document.getElementById('detail-breadcrumb').textContent=pTitle(p);
+  document.getElementById('detail-content').innerHTML=`
+    <div>
+      <div class="detail-img">${pType(p)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:start;"><h1 class="detail-title">${pTitle(p)}</h1><span class="badge">${pType(p)}</span></div>
+      <div class="detail-price">HK$${fmt(p.rent)}<small>${L.prop_month}</small></div>
+      <p style="color:var(--x-gray);">📍 ${pDistrict(p)} • ${pArea(p)} • ${pBuilding(p)}</p>
+      <div class="detail-info-grid">
+        <div class="detail-info-item"><div class="label">${L.detail_label_gross_area}</div><div class="value">${p.grossArea} ${L.detail_label_sqft}</div></div>
+        <div class="detail-info-item"><div class="label">${L.detail_label_net_area}</div><div class="value">${p.netArea} ${L.detail_label_sqft}</div></div>
+        <div class="detail-info-item"><div class="label">${L.detail_label_floor}</div><div class="value">${pFloor(p)}</div></div>
+        <div class="detail-info-item"><div class="label">${L.detail_label_renovation}</div><div class="value">${pRenovation(p)}</div></div>
+        <div class="detail-info-item"><div class="label">${L.detail_label_mgmt_fee}</div><div class="value">HK$${fmt(p.mgmtFee)}${L.prop_month}</div></div>
+        <div class="detail-info-item"><div class="label">${L.detail_label_direction}</div><div class="value">${pDirection(p)}</div></div>
+      </div>
+      <div class="detail-section"><h2>${L.detail_section_desc}</h2><p>${pDesc(p)}</p></div>
+      <div class="detail-section"><h2>${L.detail_section_facilities}</h2><div class="facilities-list">${pFacilities(p).map(f=>`<span class="facility-tag">✓ ${f}</span>`).join('')}</div></div>
+      <div class="detail-section"><h2>📍 ${L.detail_section_location}</h2><div id="detail-map-container" class="detail-map"></div>
+        <div style="border:1px solid var(--x-border);border-radius:16px;padding:24px;margin-top:16px;">
+          <p style="color:var(--x-gray);margin-bottom:8px;">${L.detail_label_building}${pBuilding(p)}</p>
+          <p style="color:var(--x-gray);margin-bottom:8px;">${L.detail_label_area}${pDistrict(p)} • ${pArea(p)}</p>
+          <p style="color:var(--x-gray);">${L.detail_label_floor_info}${pFloor(p)}</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="agent-card">
+        <h3 style="font-size:20px;font-weight:700;margin-bottom:16px;">${L.detail_agent_info}</h3>
+        <div class="agent-header"><div class="agent-avatar">${pAgent(p).charAt(0)}</div><div><div class="agent-name">${pAgent(p)}</div><div class="agent-company">${pAgentCo(p)}</div></div></div>
+        <div class="agent-contact"><a href="tel:${p.agentPhone}">📞 ${p.agentPhone}</a><a href="mailto:${p.agentEmail}">📧 ${p.agentEmail}</a></div>
+        <button class="btn btn-full" onclick="showToast('${L.toast_inquiry_sent}')">${L.detail_btn_inquiry}</button>
+        <button class="btn btn-outline btn-full" onclick="showToast('${L.toast_favorited}')">${L.detail_btn_favorite}</button>
+        <div style="border-top:1px solid var(--x-border);padding-top:16px;text-align:center;margin-top:16px;"><p style="font-size:14px;color:var(--x-gray);">${L.detail_label_views}: ${p.views}</p></div>
+      </div>
+    </div>`;
+  showPage('detail');
+  setTimeout(()=>{
+    const el=document.getElementById('detail-map-container');
+    if(el&&p.lat&&p.lng){
+      detailMapInstance=L.map(el).setView([p.lat,p.lng],16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(detailMapInstance);
+      L.marker([p.lat,p.lng]).addTo(detailMapInstance).bindPopup(`<b>${pTitle(p)}</b><br>HK$${fmt(p.rent)}${i18n[currentLang].prop_month}<br>${pDistrict(p)} • ${pArea(p)}`).openPopup();
+    }
+  },100);
+}
+
+// ===== MAP PAGE =====
+function initFullMap(){
+  setTimeout(()=>{
+    const el=document.getElementById('full-map');
+    if(!el)return;
+    if(mapInstance){mapInstance.remove();mapInstance=null}
+    mapInstance=L.map(el).setView([22.3193,114.1694],12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapInstance);
+    markers=[];
+    const Lng=i18n[currentLang];
+    properties.forEach(p=>{
+      if(p.lat&&p.lng){
+        const m=L.marker([p.lat,p.lng]).addTo(mapInstance).bindPopup(`<b>${pTitle(p)}</b><br>HK$${fmt(p.rent)}${Lng.prop_month}<br>${pType(p)}${Lng.map_popup_type}${p.grossArea}${Lng.map_popup_sqft}<br><a onclick="showDetail(${p.id})" style="color:#1d9bf0;">${Lng.map_popup_detail}</a>`);
+        markers.push(m);
+      }
+    });
+    rebuildMapSidebar();
+  },100);
+}
+
+function rebuildMapSidebar(){
+  const L=i18n[currentLang];
+  document.getElementById('map-sidebar-list').innerHTML=properties.map(p=>`
+    <div style="border:1px solid var(--x-border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;" onclick="focusMapMarker(${p.id})" onmouseover="this.style.borderColor='var(--x-blue)'" onmouseout="this.style.borderColor='var(--x-border)'">
+      <div style="display:flex;justify-content:space-between;align-items:start;"><span style="font-weight:700;font-size:14px;">${pTitle(p)}</span><span class="badge">${pType(p)}</span></div>
+      <div style="font-size:16px;font-weight:700;color:var(--x-blue);margin-top:4px;">HK$${fmt(p.rent)}${L.prop_month}</div>
+      <p style="font-size:13px;color:var(--x-gray);">📍 ${pDistrict(p)} • ${pArea(p)}</p>
+    </div>
+  `).join('');
+}
+
+function focusMapMarker(id){
+  const p=properties.find(x=>x.id===id);
+  if(p&&p.lat&&p.lng&&mapInstance){
+    mapInstance.setView([p.lat,p.lng],16);
+    markers.find(m=>m.getLatLng().lat===p.lat&&m.getLatLng().lng===p.lng)?.openPopup();
+  }
+}
+
+// ===== LISTING FORM =====
+function goStep(n){
+  for(let i=1;i<=5;i++){document.getElementById('listing-step-'+i).style.display=i===n?'block':'none';document.getElementById('step-'+i).className=i===n?'step active':'step'}
+  if(n===2)initListingMap();
+}
+function toggleCheckboxItem(el){el.classList.toggle('checked');const cb=el.querySelector('input');if(cb)cb.checked=el.classList.contains('checked')}
+function initListingMap(){
+  setTimeout(()=>{
+    const el=document.getElementById('listing-mini-map');
+    if(!el)return;
+    if(listingMapInstance){listingMapInstance.remove();listingMapInstance=null}
+    listingMapInstance=L.map(el).setView([22.3193,114.1694],12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(listingMapInstance);
+    let listingMarker=null;
+    listingMapInstance.on('click',e=>{
+      if(listingMarker)listingMapInstance.removeLayer(listingMarker);
+      listingMarker=L.marker(e.latlng).addTo(listingMapInstance).bindPopup(i18n[currentLang].map_popup_location_pin).openPopup();
+      showToast(i18n[currentLang].toast_location_marked+e.latlng.lat.toFixed(4)+', '+e.latlng.lng.toFixed(4));
+    });
+  },100);
+}
+function submitListing(){
+  const title=document.getElementById('ls-title').value;
+  const type=document.getElementById('ls-type').value;
+  const rent=document.getElementById('ls-rent').value;
+  if(!title||!type||!rent){showToast(i18n[currentLang].toast_need_fields);return}
+  showToast(i18n[currentLang].toast_listing_success);
+  setTimeout(()=>showPage('admin'),2000);
+}
+
+// ===== ADMIN TABLE =====
+function rebuildAdminTable(){
+  const L=i18n[currentLang];
+  const statusClassMap={ACTIVE:'status-active',PENDING:'status-pending',RENTED:'status-rented'};
+  document.getElementById('admin-table-body').innerHTML=properties.map(p=>{
+    return`<tr><td style="font-weight:500;">${pTitle(p)}</td><td><span class="status-badge ${statusClassMap[p.status]}">${pStatusText(p.status)}</span></td><td style="color:var(--x-gray);">${p.views}</td><td style="color:var(--x-gray);">${p.daysAgo}${L.status_days_ago}</td><td><a style="color:var(--x-blue);cursor:pointer;" onclick="showDetail(${p.id})">${L.toast_action_view}</a></td></tr>`;
+  }).join('');
+}
+
+// ===== INIT =====
+rebuildPropertyCards();
+rebuildAdminTable();
+populateDistrictSelect('home-search-district');
+populateDistrictSelect('filter-district');
+populateLsDistrictSelect();
+</script>
+</body>
+</html>
